@@ -1,3 +1,68 @@
-node_modules/
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+#enviromental variables
 .env
 
+#prettier commands
+npm run format
+npm run format:check
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Зависимости
+/node_modules
+/.pnp
+.pnp.js
+
+# Сборка
+/dist
+/.next
+/out
+
+# Логи и настройки
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+#gitattributes
+.gitattributes
+
+#prettier
+.prettierrc
+
+#package manager
+**/package-lock.json
