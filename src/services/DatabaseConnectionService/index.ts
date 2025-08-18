@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
 dotenv.config();
 
@@ -26,5 +26,9 @@ export class DataBaseConnection {
         } catch (err) {
             console.error('Connection to Database failed', err);
         }
+    }
+
+    public getIsDbConnected(): boolean {
+        return this.isDbConnected;
     }
 }

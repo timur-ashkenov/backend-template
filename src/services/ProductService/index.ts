@@ -1,4 +1,4 @@
-import { IProductBook, ProductBook } from "../../models/Product";
+import { IProductBook, ProductBook } from '../../models/Product';
 
 export class ProductService {
     public static async createProduct(data: IProductBook) {

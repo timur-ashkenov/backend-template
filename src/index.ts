@@ -1,9 +1,9 @@
-import productRoutes from './routes/ProductRoutes/index';
-import transactionRoutes from './routes/TransactionRoutes/index'
-import express from 'express';
 import dotenv from 'dotenv';
-import swaggerUi from "swagger-ui-express";
-import swaggerSpec from './swagger';
+import express from 'express';
+import productRoutes from './routes/ProductRoutes/index';
+import transactionRoutes from './routes/TransactionRoutes/index';
+import { setupSwagger } from './docs/swaggerdoc';
+import { errorHandler } from './middlewares/errorHandler';
 import { DataBaseConnection } from './services/DatabaseConnectionService';
 
 dotenv.config();
@@ -21,10 +21,11 @@ databaseConnection.connectMongoDb();
 
 const PORT = process.env.PORT;
 
-app.use('/api', productRoutes);
-app.use("/api", transactionRoutes);
+app.use('/', productRoutes);
+app.use('/', transactionRoutes);
+app.use(errorHandler);
 
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+setupSwagger(app);
 
 app.listen(PORT, () => {
     console.log(`Express server is listening on http://localhost:${PORT}`);
