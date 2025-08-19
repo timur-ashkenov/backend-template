@@ -1,4 +1,6 @@
 import { ProductService } from '../../services/ProductService';
+import { asyncHandler } from '../../middlewares/asyncHandler';
+import { ProductController } from '../../controllers/productController';
 import { Request, Router, Response, NextFunction } from 'express';
 
 const router = Router();
@@ -25,18 +27,7 @@ const router = Router();
  *       400:
  *         description: Incorrect data
  */
-router.post(
-    '/products/create',
-    async (request: Request, response: Response, next: NextFunction) => {
-        try {
-            const products = await ProductService.createProduct(request.body);
-
-            response.status(201).json(products);
-        } catch (error) {
-            next(error);
-        }
-    }
-);
+router.post('/products', asyncHandler(ProductController.create));
 
 /**
  * @swagger
@@ -56,20 +47,7 @@ router.post(
  *       404:
  *         description: Product not found
  */
-router.delete(
-    '/products/:id',
-    async (request: Request, response: Response, next: NextFunction) => {
-        try {
-            const products = await ProductService.deleteProduct(
-                request.params.id
-            );
-
-            response.status(200).json(products);
-        } catch (error) {
-            next(error);
-        }
-    }
-);
+router.delete('/products/:id', asyncHandler(ProductController.remove));
 
 /**
  * @swagger
@@ -95,21 +73,7 @@ router.delete(
  *       404:
  *         description: Product not found
  */
-router.patch(
-    '/products/:id',
-    async (request: Request, response: Response, next: NextFunction) => {
-        try {
-            const products = await ProductService.updateProduct(
-                request.params.id,
-                request.body
-            );
-
-            response.status(200).json(products);
-        } catch (error) {
-            next(error);
-        }
-    }
-);
+router.patch('/products/:id', asyncHandler(ProductController.update));
 
 /**
  * @swagger
@@ -129,20 +93,7 @@ router.patch(
  *       404:
  *         description: Product not found
  */
-router.get(
-    '/products/:id',
-    async (request: Request, response: Response, next: NextFunction) => {
-        try {
-            const products = await ProductService.getProductById(
-                request.params.id
-            );
-
-            response.status(200).json(products);
-        } catch (error) {
-            next(error);
-        }
-    }
-);
+router.get('/products/:id', asyncHandler(ProductController.getById));
 
 /**
  * @swagger
@@ -160,17 +111,6 @@ router.get(
  *               items:
  *                 $ref: '#/components/schemas/Product'
  */
-router.get(
-    '/products',
-    async (request: Request, response: Response, next: NextFunction) => {
-        try {
-            const products = await ProductService.getListOfProducts();
-
-            response.status(200).json(products);
-        } catch (error) {
-            next(error);
-        }
-    }
-);
+router.get('/products', asyncHandler(ProductController.list));
 
 export default router;

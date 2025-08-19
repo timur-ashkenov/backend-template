@@ -1,5 +1,7 @@
+import { TransactionController } from '../../controllers/transactionController';
 import { TransactionService } from '../../services/TransactionService';
 import { Request, Router, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../middlewares/asyncHandler';
 
 const router = Router();
 
@@ -25,20 +27,7 @@ const router = Router();
  *       400:
  *         description: Incorrect data
  */
-router.post(
-    '/transactions',
-    async (request: Request, response: Response, next: NextFunction) => {
-        try {
-            const transactions = await TransactionService.createTransaction(
-                request.body
-            );
-
-            response.status(201).json(transactions);
-        } catch (error) {
-            next(error);
-        }
-    }
-);
+router.post('/transactions', asyncHandler(TransactionController.create));
 
 /**
  * @swagger
@@ -56,17 +45,6 @@ router.post(
  *               items:
  *                 $ref: '#/components/schemas/Transaction'
  */
-router.get(
-    '/transactions',
-    async (request: Request, response: Response, next: NextFunction) => {
-        try {
-            const transactions = await TransactionService.getTransaction();
-
-            response.status(200).json(transactions);
-        } catch (error) {
-            next(error);
-        }
-    }
-);
+router.get('/transactions', asyncHandler(TransactionController.list));
 
 export default router;

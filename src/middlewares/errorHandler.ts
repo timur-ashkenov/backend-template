@@ -15,21 +15,27 @@ export function errorHandler(
     let status = 500;
     let message = 'Internal server error';
 
-    if (error instanceof BadRequestError) {
+    switch (true) {
+    case error instanceof BadRequestError:
         status = 400;
         message = error.message;
-    } else if (error instanceof NotFoundError) {
+        break;
+    case error instanceof NotFoundError:
         status = 404;
         message = error.message;
-    } else if (error instanceof ConflictError) {
+        break;
+    case error instanceof ConflictError:
         status = 409;
         message = error.message;
-    } else if (error instanceof UnprocessableEntityError) {
+        break;
+    case error instanceof UnprocessableEntityError:
         status = 422;
         message = error.message;
-    } else if (error instanceof Error) {
+        break;
+    case error instanceof Error:
         message = error.message;
-    }
+        break;
+}
 
     response.status(status).json({ error: message });
 }

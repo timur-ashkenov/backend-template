@@ -21,8 +21,8 @@ databaseConnection.connectMongoDb();
 
 const PORT = process.env.PORT;
 
-app.use('/', productRoutes);
-app.use('/', transactionRoutes);
+app.use(productRoutes);
+app.use(transactionRoutes);
 app.use(errorHandler);
 
 setupSwagger(app);
