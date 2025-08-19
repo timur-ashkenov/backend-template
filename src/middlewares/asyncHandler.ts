@@ -1,4 +1,17 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 
-export const asyncHandler = (fn: (request: Request, response: Response, next: NextFunction) => Promise<unknown>): RequestHandler =>
-  (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+export function asyncHandler(
+    handler: (
+        request: Request,
+        response: Response,
+        next: NextFunction
+    ) => Promise<unknown>
+): RequestHandler {
+    return async function wrapped(request, response, next) {
+        try {
+            await handler(request, response, next);
+        } catch (error) {
+            next(error);
+        }
+    };
+}
