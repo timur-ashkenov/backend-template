@@ -1,26 +1,50 @@
+import { TransactionController } from '../../controllers/transactionController';
 import { TransactionService } from '../../services/TransactionService';
-import { Request, Router, Response } from 'express';
+import { Request, Router, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../middlewares/asyncHandler';
 
 const router = Router();
 
-router.post('/transactions', async (request: Request, response: Response) => {
-    try {
-        const transactions = await TransactionService.createTransaction(request.body);
+/**
+ * @swagger
+ * /transactions:
+ *   post:
+ *     tags: [Transactions]
+ *     summary: Create transaction
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/TransactionCreateInput'
+ *     responses:
+ *       201:
+ *         description: Transaction had been created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Transaction'
+ *       400:
+ *         description: Incorrect data
+ */
+router.post('/transactions', asyncHandler(TransactionController.create));
 
-        response.status(201).json(transactions);
-    } catch (error) {
-        response.status(400).json({ error: 'Failed to create transaction '});
-    }
-});
-
-router.get('/transactions', async (request: Request, response: Response) => {
-    try {
-        const transactions = await TransactionService.getTransaction();
-
-        response.status(200).json(transactions);
-    } catch (error) {
-        response.status(500).json({ error: 'Failed to fetch transactions' });
-    }
-});
+/**
+ * @swagger
+ * /transactions:
+ *   get:
+ *     tags: [Transactions]
+ *     summary: Get list of transactions
+ *     responses:
+ *       200:
+ *         description: List of transactions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Transaction'
+ */
+router.get('/transactions', asyncHandler(TransactionController.list));
 
 export default router;
