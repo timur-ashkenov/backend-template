@@ -1,7 +1,6 @@
-import { ProductService } from '../../services/ProductService';
-import { asyncHandler } from '../../middlewares/asyncHandler';
 import { ProductController } from '../../controllers/productController';
-import { Request, Router, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../middlewares/asyncHandler';
+import { Router} from 'express';
 
 const router = Router();
 
@@ -27,7 +26,7 @@ const router = Router();
  *       400:
  *         description: Incorrect data
  */
-router.post('/products', asyncHandler(ProductController.create));
+router.post('/products/create', asyncHandler(ProductController.create));
 
 /**
  * @swagger

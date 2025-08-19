@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import productRoutes from './routes/ProductRoutes/index';
 import transactionRoutes from './routes/TransactionRoutes/index';
+import AuthRoutes from './routes/AuthRoutes/index'
 import { setupSwagger } from './docs/swaggerdoc';
 import { errorHandler } from './middlewares/errorHandler';
 import { DataBaseConnection } from './services/DatabaseConnectionService';
@@ -23,6 +24,7 @@ const PORT = process.env.PORT;
 
 app.use(productRoutes);
 app.use(transactionRoutes);
+app.use(AuthRoutes);
 app.use(errorHandler);
 
 setupSwagger(app);
