@@ -4,6 +4,7 @@ import {
     NotFoundError,
     ConflictError,
     UnprocessableEntityError,
+    UnauthorizedError,
 } from '../errors';
 
 export function errorHandler(
@@ -16,26 +17,29 @@ export function errorHandler(
     let message = 'Internal server error';
 
     switch (true) {
-    case error instanceof BadRequestError:
-        status = 400;
-        message = error.message;
-        break;
-    case error instanceof NotFoundError:
-        status = 404;
-        message = error.message;
-        break;
-    case error instanceof ConflictError:
-        status = 409;
-        message = error.message;
-        break;
-    case error instanceof UnprocessableEntityError:
-        status = 422;
-        message = error.message;
-        break;
-    case error instanceof Error:
-        message = error.message;
-        break;
-}
+        case error instanceof BadRequestError:
+            status = 400;
+            message = error.message;
+            break;
+        case error instanceof NotFoundError:
+            status = 404;
+            message = error.message;
+            break;
+        case error instanceof ConflictError:
+            status = 409;
+            message = error.message;
+            break;
+        case error instanceof UnprocessableEntityError:
+            status = 422;
+            message = error.message;
+            break;
+        case error instanceof Error:
+            message = error.message;
+            break;
+        case error instanceof Error:
+            message = error.message;
+            break;
+    }
 
     response.status(status).json({ error: message });
 }
