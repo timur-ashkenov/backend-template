@@ -5,7 +5,6 @@ export interface IEmailVerification extends Document {
     codeHash: string;
     expiresAt: Date;
     consumedAt: Date | null;
-    lastSentAt: Date | null;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -29,10 +28,6 @@ const EmailVerificationSchema = new Schema<IEmailVerification>(
             index: { expireAfterSeconds: 0 },
         },
         consumedAt: {
-            type: Date,
-            default: null,
-        },
-        lastSentAt: {
             type: Date,
             default: null,
         },

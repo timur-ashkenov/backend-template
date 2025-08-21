@@ -1,15 +1,13 @@
-import { IMailService } from '../IMailService';
 import nodemailer from 'nodemailer';
+import { SMTP_MIN_SEND_ATTEMPTS, SMTP_MAX_SEND_ATTEMPTS, SMTP_RETRY_DELAY_MS } from '../../utils/Constants';
+import { SMTPDelay } from '../../utils/Delays';
+import { IMailService } from '../IMailService';
 
-export class SmtpMailService implements IMailService {
+class SmtpMailService implements IMailService {
     private transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: Number(process.env.SMTP_PORT || 587),
         secure: String(process.env.SMTP_SECURE || 'false') === 'true',
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-        },
     });
 
     private from = process.env.MAIL_FROM || 'no-reply@example.com';
@@ -21,7 +19,7 @@ It is valid for 1 hour. If you did not request the code, simply ignore this emai
 
         let lastError: unknown;
 
-        for (let attempt = 1; attempt <= 2; attempt++) {
+        for (let attempt = SMTP_MIN_SEND_ATTEMPTS; attempt <= SMTP_MAX_SEND_ATTEMPTS; attempt++) {
             try {
                 console.log("[SMTP] before sendMail", { to: email });
                 const info = await this.transporter.sendMail({
@@ -35,14 +33,14 @@ It is valid for 1 hour. If you did not request the code, simply ignore this emai
             } catch (error) {
                 lastError = error;
 
-                if (this.isPermanentError(error)) break;
+                if (SmtpMailService.isPermanentError(error)) break;
 
-                await new Promise((r) => setTimeout(r, 300));
+                await SMTPDelay(SMTP_RETRY_DELAY_MS);
             }
         }
     }
 
-    private isPermanentError(err: any): boolean {
+    private static isPermanentError(err: any): boolean {
         const code = err?.code;
 
         const status = err?.responseCode;
@@ -54,3 +52,5 @@ It is valid for 1 hour. If you did not request the code, simply ignore this emai
         );
     }
 }
+
+export default SmtpMailService;

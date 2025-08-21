@@ -19,26 +19,6 @@ export class EmailVerificationDatabaseAPI {
         return activeRecord;
     }
 
-    public static async touchLastSent(id: string, when: Date) {
-        const result = await EmailVerification.findOneAndUpdate(
-            { _id: id },
-            {
-                $set: {
-                    lastSentAt: when,
-                },
-            },
-            {
-                new: true,
-            }
-        ).exec();
-
-        if (!result) {
-            throw new NotFoundError(`Record with id ${id} not found`);
-        }
-
-        return result;
-    }
-
     public static async markConsumed(
         id: string,
         when: Date
@@ -60,13 +40,11 @@ export class EmailVerificationDatabaseAPI {
         email: string;
         codeHash: string;
         expiresAt: Date;
-        lastSentAt: Date;
     }): Promise<IEmailVerification> {
         const doc = await EmailVerification.create({
             email: params.email,
             codeHash: params.codeHash,
             expiresAt: params.expiresAt,
-            lastSentAt: params.lastSentAt,
             consumedAt: null,
         });
 

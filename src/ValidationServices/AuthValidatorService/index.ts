@@ -1,8 +1,6 @@
 import { UnprocessableEntityError } from '../../errors';
 import { EmailRequestDTO, EmailVerifyRequestDTO } from '../../types';
-
-const EMAIL_BASE_STRUCTURE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const CODE_BASE_STRUCTURE = /^\d{6}$/;
+import {EMAIL_BASE_STRUCTURE, CODE_BASE_STRUCTURE} from '../../utils/Constants';
 
 export class AuthValidatorService {
     static validateEmailRequest(body: EmailRequestDTO): void {

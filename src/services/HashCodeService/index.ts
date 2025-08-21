@@ -1,22 +1,38 @@
-import bcrypt from 'bcryptjs';
-import { randomInt } from 'crypto';
+import { ALG, CODE_LENGTH, OTP_CODE_MIN_DIGIT, OTP_CODE_MAX_DIGIT, OTP_SALT_LENGTH } from "../../utils/Constants";
+import { randomBytes, createHmac, timingSafeEqual } from "crypto";
+import { requireOtpSecretBuf } from "../../security/SecretManger";
 
 export class HashCodeService {
-    public static generateNumericCode(len = 6): string {
-        let s = '';
+  public static myRandomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
 
-        for (let i = 0; i < len; i++) s += String(randomInt(0, 10));
-
-        return s;
+  public static generateNumericCode(len = CODE_LENGTH): string {
+    let s = "";
+    for (let i = 0; i < len; i++) {
+      s += String(this.myRandomInt(OTP_CODE_MIN_DIGIT, OTP_CODE_MAX_DIGIT));
     }
+    return s;
+  }
+  
+  public static hashCode(plain: string): string {
+    const salt = randomBytes(OTP_SALT_LENGTH);
+    const macHex = createHmac(ALG, requireOtpSecretBuf())
+      .update(salt).update("|").update(plain).update("|v1")
+      .digest("hex");
+    return `${salt.toString("base64")}:${macHex}`;
+  }
 
-    public static async hashCode(plain: string): Promise<string> {
-        const saltRounds = 10;
+  public static compareCode(plain: string, stored: string): boolean {
+    const [saltB64, macHex] = stored.split(":");
+    if (!saltB64 || !macHex) return false;
 
-        return bcrypt.hash(plain, saltRounds);
-    }
+    const salt = Buffer.from(saltB64, "base64");
+    const expected = Buffer.from(macHex, "hex");
+    const computed = createHmac(ALG, requireOtpSecretBuf())
+      .update(salt).update("|").update(plain).update("|v1")
+      .digest();
 
-    public static async compareCode(plain: string, hash: string) {
-        return bcrypt.compare(plain, hash);
-    }
+    return expected.length === computed.length && timingSafeEqual(expected, computed);
+  }
 }
