@@ -37,17 +37,17 @@ export class EmailVerificationDatabaseAPI {
 
         return doc;
     }
-
-    static async updateActiveByEmail(
+    static async upsertUnconsumedByEmail(
         email: string,
         patch: { codeHash: string; expiresAt: Date }
     ) {
         return EmailVerification.findOneAndUpdate(
-            { email, consumedAt: null, expiresAt: { $gt: new Date() } },
-
-            { $set: { codeHash: patch.codeHash, expiresAt: patch.expiresAt } },
-            
-            { new: true }
+            { email, consumedAt: null },
+            {
+                $set: { codeHash: patch.codeHash, expiresAt: patch.expiresAt },
+                $setOnInsert: { email, consumedAt: null },
+            },
+            { new: true, upsert: true }
         ).exec();
     }
 }

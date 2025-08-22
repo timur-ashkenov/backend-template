@@ -11,48 +11,17 @@ export class EmailVerificationService {
 
             const normalized = email.trim().toLowerCase();
 
-            const activeVerification =
-                await EmailVerificationDatabaseAPI.findActiveByEmail(
-                    normalized
-                );
-
             const code = HashCodeService.generateNumericCode();
             const codeHash = HashCodeService.hashCode(code);
             const expiresAt = new Date(now.getTime() + OTP_TTL_MS);
 
-            if (!activeVerification) {
-                await EmailVerificationDatabaseAPI.createNew({
-                    email: normalized,
+            await EmailVerificationDatabaseAPI.upsertUnconsumedByEmail(
+                normalized,
+                {
                     codeHash,
                     expiresAt,
-                });
-                const mailer = makeMailService();
-
-                await mailer.sendVerificationCode(normalized, code);
-
-                return;
-            }
-
-            if (activeVerification.expiresAt.getTime() <= now.getTime()) {
-                await EmailVerificationDatabaseAPI.deleteById(
-                    String(activeVerification._id)
-                );
-                await EmailVerificationDatabaseAPI.createNew({
-                    email: normalized,
-                    codeHash,
-                    expiresAt,
-                });
-                const mailer = makeMailService();
-
-                await mailer.sendVerificationCode(normalized, code);
-
-                return;
-            }
-
-            await EmailVerificationDatabaseAPI.updateActiveByEmail(normalized, {
-                codeHash,
-                expiresAt,
-            });
+                }
+            );
 
             const mailer = makeMailService();
 
@@ -75,6 +44,9 @@ export class EmailVerificationService {
         }
 
         if (activeVerification.expiresAt.getTime() <= now.getTime()) {
+            await EmailVerificationDatabaseAPI.deleteById(
+                String(activeVerification._id)
+            ).catch(() => {});
             throw new UnauthorizedError('expired_code');
         }
 
