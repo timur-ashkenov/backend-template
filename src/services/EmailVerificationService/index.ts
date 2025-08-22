@@ -1,6 +1,6 @@
 import { EmailVerificationDatabaseAPI } from '../EmailVerificationDatabaseAPI';
 import { HashCodeService } from '../HashCodeService';
-import { OTP_TTL_MS } from '../../utils/сonstants';
+import { OTP_TTL_MS } from '../../utils/constants';
 import { makeMailService } from '../MailerService';
 import { UnauthorizedError } from '../../errors';
 
@@ -16,16 +16,40 @@ export class EmailVerificationService {
                     normalized
                 );
 
-            if (activeVerification) {
-                return;
-            }
-
             const code = HashCodeService.generateNumericCode();
             const codeHash = HashCodeService.hashCode(code);
             const expiresAt = new Date(now.getTime() + OTP_TTL_MS);
 
-            await EmailVerificationDatabaseAPI.createNew({
-                email: normalized,
+            if (!activeVerification) {
+                await EmailVerificationDatabaseAPI.createNew({
+                    email: normalized,
+                    codeHash,
+                    expiresAt,
+                });
+                const mailer = makeMailService();
+
+                await mailer.sendVerificationCode(normalized, code);
+
+                return;
+            }
+
+            if (activeVerification.expiresAt.getTime() <= now.getTime()) {
+                await EmailVerificationDatabaseAPI.deleteById(
+                    String(activeVerification._id)
+                );
+                await EmailVerificationDatabaseAPI.createNew({
+                    email: normalized,
+                    codeHash,
+                    expiresAt,
+                });
+                const mailer = makeMailService();
+
+                await mailer.sendVerificationCode(normalized, code);
+
+                return;
+            }
+
+            await EmailVerificationDatabaseAPI.updateActiveByEmail(normalized, {
                 codeHash,
                 expiresAt,
             });
@@ -54,11 +78,16 @@ export class EmailVerificationService {
             throw new UnauthorizedError('expired_code');
         }
 
-        const ok = HashCodeService.compareCode(code.trim(), activeVerification.codeHash);
+        const ok = HashCodeService.compareCode(
+            code.trim(),
+            activeVerification.codeHash
+        );
         if (!ok) {
             throw new UnauthorizedError('invalid_code');
         }
 
-        await EmailVerificationDatabaseAPI.deleteById(String(activeVerification._id));
+        await EmailVerificationDatabaseAPI.deleteById(
+            String(activeVerification._id)
+        );
     }
 }

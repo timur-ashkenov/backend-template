@@ -1,4 +1,4 @@
-import { ALG, CODE_LENGTH, OTP_CODE_MIN_DIGIT, OTP_CODE_MAX_DIGIT, OTP_SALT_LENGTH } from "../../utils/сonstants";
+import { ALG, CODE_LENGTH, OTP_CODE_MIN_DIGIT, OTP_CODE_MAX_DIGIT, OTP_SALT_LENGTH } from "../../utils/constants";
 import { randomBytes, createHmac, timingSafeEqual } from "crypto";
 import { requireOtpSecretBuf } from "../../security/SecretManger";
 

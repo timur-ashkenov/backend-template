@@ -3,11 +3,23 @@ import {
     SMTP_MIN_SEND_ATTEMPTS,
     SMTP_MAX_SEND_ATTEMPTS,
     SMTP_RETRY_DELAY_MS,
-} from '../../utils/сonstants';
-import { Delays } from '../../utils/delays';
+} from '../../utils/constants';
+import { Delays } from '../../utils/methods';
 import { IMailService } from '../IMailService';
 
 class SmtpMailService implements IMailService {
+    private static isPermanentError(err: any): boolean {
+        const code = err?.code;
+
+        const status = err?.responseCode;
+
+        return (
+            (typeof status === 'number' && status >= 400 && status < 500) ||
+            code === 'EAUTH' ||
+            code === 'EENVELOPE'
+        );
+    }
+
     private transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: Number(process.env.SMTP_PORT || 587),
@@ -60,18 +72,6 @@ It is valid for 1 hour. If you did not request the code, simply ignore this emai
                 }
             }
         }
-    }
-
-    private static isPermanentError(err: any): boolean {
-        const code = err?.code;
-
-        const status = err?.responseCode;
-
-        return (
-            (typeof status === 'number' && status >= 400 && status < 500) ||
-            code === 'EAUTH' ||
-            code === 'EENVELOPE'
-        );
     }
 }
 

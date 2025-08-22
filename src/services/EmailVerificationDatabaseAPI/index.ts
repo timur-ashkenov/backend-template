@@ -37,4 +37,17 @@ export class EmailVerificationDatabaseAPI {
 
         return doc;
     }
+
+    static async updateActiveByEmail(
+        email: string,
+        patch: { codeHash: string; expiresAt: Date }
+    ) {
+        return EmailVerification.findOneAndUpdate(
+            { email, consumedAt: null, expiresAt: { $gt: new Date() } },
+
+            { $set: { codeHash: patch.codeHash, expiresAt: patch.expiresAt } },
+            
+            { new: true }
+        ).exec();
+    }
 }
