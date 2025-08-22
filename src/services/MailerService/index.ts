@@ -8,5 +8,6 @@ export function makeMailService(): IMailService {
   if (provider === "smtp") {
     return new SmtpMailService();
   }
+
   return new DevMailService();
 }

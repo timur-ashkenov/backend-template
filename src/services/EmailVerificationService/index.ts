@@ -1,6 +1,6 @@
 import { EmailVerificationDatabaseAPI } from '../EmailVerificationDatabaseAPI';
 import { HashCodeService } from '../HashCodeService';
-import { OTP_TTL_MS } from '../../utils/Constants';
+import { OTP_TTL_MS } from '../../utils/сonstants';
 import { makeMailService } from '../MailerService';
 import { UnauthorizedError } from '../../errors';
 
@@ -32,11 +32,7 @@ export class EmailVerificationService {
 
             const mailer = makeMailService();
 
-            try {
-                await mailer.sendVerificationCode(normalized, code);
-            } catch (error) {
-                console.error('[MAIL] sendVerificationCode failed', error);
-            }
+            await mailer.sendVerificationCode(normalized, code);
         } catch (error) {
             console.error('Failed to request code', error);
 
@@ -63,9 +59,6 @@ export class EmailVerificationService {
             throw new UnauthorizedError('invalid_code');
         }
 
-        await EmailVerificationDatabaseAPI.markConsumed(
-            String(activeVerification._id),
-            now
-        );
+        await EmailVerificationDatabaseAPI.deleteById(String(activeVerification._id));
     }
 }

@@ -1,4 +1,5 @@
-export const EMAIL_BASE_STRUCTURE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL_BASE_STRUCTURE = /^(?=.{1,254}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const CODE_BASE_STRUCTURE = /^\d{6}$/;
 export const ALG = "sha256";
 

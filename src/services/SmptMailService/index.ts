@@ -1,6 +1,10 @@
 import nodemailer from 'nodemailer';
-import { SMTP_MIN_SEND_ATTEMPTS, SMTP_MAX_SEND_ATTEMPTS, SMTP_RETRY_DELAY_MS } from '../../utils/Constants';
-import { SMTPDelay } from '../../utils/Delays';
+import {
+    SMTP_MIN_SEND_ATTEMPTS,
+    SMTP_MAX_SEND_ATTEMPTS,
+    SMTP_RETRY_DELAY_MS,
+} from '../../utils/сonstants';
+import { Delays } from '../../utils/delays';
 import { IMailService } from '../IMailService';
 
 class SmtpMailService implements IMailService {
@@ -19,23 +23,41 @@ It is valid for 1 hour. If you did not request the code, simply ignore this emai
 
         let lastError: unknown;
 
-        for (let attempt = SMTP_MIN_SEND_ATTEMPTS; attempt <= SMTP_MAX_SEND_ATTEMPTS; attempt++) {
+        for (
+            let attempt = SMTP_MIN_SEND_ATTEMPTS;
+            attempt <= SMTP_MAX_SEND_ATTEMPTS;
+            attempt++
+        ) {
             try {
-                console.log("[SMTP] before sendMail", { to: email });
+                console.log('[SMTP] before sendMail', { to: email });
                 const info = await this.transporter.sendMail({
                     from: this.from,
                     to: email,
                     subject,
                     text,
                 });
-                console.log("[SMTP] sent OK", { messageId: info.messageId, response: info.response });
+                console.log('[SMTP] sent OK', {
+                    messageId: info.messageId,
+                    response: info.response,
+                });
                 return;
             } catch (error) {
                 lastError = error;
 
-                if (SmtpMailService.isPermanentError(error)) break;
+                if (SmtpMailService.isPermanentError(error)) {
+                    console.error("[SMTP] permanent error, won't retry", {
+                        error,
+                    });
+                    throw error;
+                }
 
-                await SMTPDelay(SMTP_RETRY_DELAY_MS);
+                if (attempt < SMTP_MAX_SEND_ATTEMPTS) {
+                    console.warn(
+                        '[SMTP] transient error, will retry after delay',
+                        { attempt, error }
+                    );
+                    await Delays.smtp(SMTP_RETRY_DELAY_MS);
+                }
             }
         }
     }

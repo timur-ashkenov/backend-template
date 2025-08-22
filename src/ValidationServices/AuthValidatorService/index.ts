@@ -1,6 +1,6 @@
 import { UnprocessableEntityError } from '../../errors';
 import { EmailRequestDTO, EmailVerifyRequestDTO } from '../../types';
-import {EMAIL_BASE_STRUCTURE, CODE_BASE_STRUCTURE} from '../../utils/Constants';
+import {EMAIL_BASE_STRUCTURE, CODE_BASE_STRUCTURE} from '../../utils/сonstants';
 
 export class AuthValidatorService {
     static validateEmailRequest(body: EmailRequestDTO): void {
@@ -9,7 +9,7 @@ export class AuthValidatorService {
         if (!email) {
             throw new UnprocessableEntityError('Email is required');
         }
-        if (email.length > 254 || !EMAIL_BASE_STRUCTURE.test(email)) {
+        if (!EMAIL_BASE_STRUCTURE.test(email)) {
             throw new UnprocessableEntityError('Email format is invalid');
         }
     }

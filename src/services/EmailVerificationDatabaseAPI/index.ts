@@ -19,21 +19,8 @@ export class EmailVerificationDatabaseAPI {
         return activeRecord;
     }
 
-    public static async markConsumed(
-        id: string,
-        when: Date
-    ): Promise<IEmailVerification> {
-        const updated = await EmailVerification.findOneAndUpdate(
-            { _id: id, consumedAt: null },
-            { $set: { consumedAt: when } },
-            { new: true }
-        ).exec();
-
-        if (!updated) {
-            throw new NotFoundError(`Active record with id ${id} not found`);
-        }
-
-        return updated;
+    static async deleteById(id: string): Promise<void> {
+        await EmailVerification.deleteOne({ _id: id }).exec();
     }
 
     public static async createNew(params: {
