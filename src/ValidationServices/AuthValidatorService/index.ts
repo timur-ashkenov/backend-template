@@ -4,12 +4,11 @@ import {EMAIL_BASE_STRUCTURE, CODE_BASE_STRUCTURE} from '../../utils/сonstants'
 
 export class AuthValidatorService {
     static validateEmailRequest(body: EmailRequestDTO): void {
-        const email = body.email?.trim();
 
-        if (!email) {
+        if (!body.email) {
             throw new UnprocessableEntityError('Email is required');
         }
-        if (!EMAIL_BASE_STRUCTURE.test(email)) {
+        if (!EMAIL_BASE_STRUCTURE.test(body.email)) {
             throw new UnprocessableEntityError('Email format is invalid');
         }
     }
