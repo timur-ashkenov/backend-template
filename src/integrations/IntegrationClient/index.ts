@@ -91,9 +91,6 @@ export class MoySkladClient {
     return querySet ? `${baseURL}${path}?${querySet}` : `${baseURL}${path}`;
   }
 
-  /**
-   * Кверистрочка из объекта: массивы -> key=a&key=b; null/undefined пропускаем.
-   */
   private buildQuery(params?: Record<string, any>): string {
     if (!params || typeof params !== "object") return "";
 
@@ -297,7 +294,7 @@ export class MoySkladClient {
 
       if (!Number.isNaN(when)) {
         const delta = when - Date.now();
-        
+
         if (delta > 0) return delta;
       }
     }
