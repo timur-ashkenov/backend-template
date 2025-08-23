@@ -1,14 +1,25 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
+import dotenv from "dotenv";
 
-const ALLOWED_ORIGIN = process.env.CORS;
+dotenv.config();
 
-export function corsConfig(
-    request: Request,
-    response: Response,
-    next: NextFunction
+const allowedOrigins = [
+  process.env.ALLOWED_ORIGIN_LOCALHOST,
+  process.env.ALLOWED_ORIGIN_BUILD_LOCALHOST
+].filter(Boolean);
+
+export function corsMiddleware(
+  request: Request,
+  response: Response,
+  next: NextFunction
 ) {
-    response.header('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
-    response.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
-    response.header('Access-Control-Allow-Headers', 'Content-Type');
-    next();
+  const origin = request.headers.origin;
+
+  if (origin && allowedOrigins.includes(origin)) {
+    response.header("Access-Control-Allow-Origin", origin);
+  }
+
+  response.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  response.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
 }
