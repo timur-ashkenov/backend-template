@@ -42,10 +42,10 @@ export class EmailVerificationDatabaseAPI {
         patch: { codeHash: string; expiresAt: Date }
     ) {
         return EmailVerification.findOneAndUpdate(
-            { email, consumedAt: null },
+            { email },
             {
                 $set: { codeHash: patch.codeHash, expiresAt: patch.expiresAt },
-                $setOnInsert: { email, consumedAt: null },
+                $setOnInsert: { email},
             },
             { new: true, upsert: true }
         ).exec();

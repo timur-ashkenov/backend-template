@@ -1,11 +1,11 @@
 import nodemailer from 'nodemailer';
+import { IMailService } from '../IMailService';
+import { Delays } from '../../utils/methods';
 import {
     SMTP_MIN_SEND_ATTEMPTS,
     SMTP_MAX_SEND_ATTEMPTS,
     SMTP_RETRY_DELAY_MS,
 } from '../../utils/constants';
-import { Delays } from '../../utils/methods';
-import { IMailService } from '../IMailService';
 
 class SmtpMailService implements IMailService {
     private static isPermanentError(err: any): boolean {
