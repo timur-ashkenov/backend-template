@@ -7,7 +7,7 @@ const router = Router();
 
 /**
  * @swagger
- * /products/create:
+ * /products:
  *   post:
  *     tags: [Products]
  *     summary: Create new product

@@ -1,3 +1,27 @@
+export interface ClientConfig {
+  baseURL: string;
+  token?: string;
+  basic?: { user: string; pass: string };
+  timeoutMs?: number;
+  maxRetries?: number;
+}
+
+export type HttpHeaders = Record<string, string>;
+
+export interface HttpResponse<T=unknown> {
+  status: number;
+  headers: HttpHeaders;
+  data: T;
+}
+
+export interface ListParams {
+  limit?: number;
+  offset?: number;
+  search?: string;
+  includeImages?: boolean;
+  onlyActive?: boolean;
+}
+
 export type MarketProduct = {
   id: string;
   name: string;
