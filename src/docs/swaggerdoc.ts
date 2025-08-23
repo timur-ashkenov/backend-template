@@ -21,6 +21,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
                 name: 'Transactions',
                 description: 'Operations with transactions',
             },
+            { name: 'Auth', description: 'Email verification flow' },
         ],
         components: {
             schemas: {
@@ -131,6 +132,50 @@ const swaggerOptions: swaggerJsdoc.Options = {
                         products: { type: 'array', items: { type: 'string' } },
                     },
                     required: ['userId', 'amount', 'products'],
+                },
+                EmailRequest: {
+                    type: 'object',
+                    required: ['email'],
+                    properties: {
+                        email: {
+                            type: 'string',
+                            format: 'email',
+                            example: 'test@example.com',
+                        },
+                    },
+                },
+                EmailVerifyRequest: {
+                    type: 'object',
+                    required: ['email', 'code'],
+                    properties: {
+                        email: {
+                            type: 'string',
+                            format: 'email',
+                            example: 'test@example.com',
+                        },
+                        code: {
+                            type: 'string',
+                            pattern: '^\\d{6}$',
+                            example: '123456',
+                        },
+                    },
+                },
+                AuthOk: {
+                    type: 'object',
+                    properties: { ok: { type: 'boolean', example: true } },
+                },
+                AuthVerifyOk: {
+                    type: 'object',
+                    properties: {
+                        ok: { type: 'boolean', example: true },
+                        userExists: { type: 'boolean', example: false },
+                    },
+                },
+                ErrorResponse: {
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string', example: 'invalid_code' },
+                    },
                 },
             },
             parameters: {
