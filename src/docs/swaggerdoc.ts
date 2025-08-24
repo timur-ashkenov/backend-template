@@ -21,6 +21,10 @@ const swaggerOptions: swaggerJsdoc.Options = {
                 name: 'Transactions',
                 description: 'Operations with transactions',
             },
+            {
+                name: 'MoySklad',
+                description: 'Integration with MoySklad (assortment)',
+            },
             { name: 'Auth', description: 'Email verification flow' },
         ],
         components: {
@@ -176,6 +180,68 @@ const swaggerOptions: swaggerJsdoc.Options = {
                     properties: {
                         error: { type: 'string', example: 'invalid_code' },
                     },
+                },
+                MarketProduct: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        name: { type: 'string' },
+                        code: { type: 'string', nullable: true },
+                        article: { type: 'string', nullable: true },
+                        barcodes: { type: 'array', items: { type: 'string' } },
+                        price: {
+                            type: 'number',
+                            nullable: true,
+                            description: 'salePrices[0].value / 100',
+                        },
+                        stock: { type: 'number', nullable: true },
+                        reserve: { type: 'number', nullable: true },
+                        imageUrls: {
+                            type: 'array',
+                            items: { type: 'string', format: 'uri' },
+                        },
+                        archived: { type: 'boolean' },
+                    },
+                    required: [
+                        'id',
+                        'name',
+                        'barcodes',
+                        'imageUrls',
+                        'archived',
+                    ],
+                },
+
+                RateInfo: {
+                    type: 'object',
+                    properties: {
+                        limit: { type: 'integer' },
+                        remaining: { type: 'integer' },
+                        retryAfter: {
+                            type: 'integer',
+                            description: 'Seconds before next request',
+                        },
+                    },
+                    required: ['limit', 'remaining', 'retryAfter'],
+                },
+
+                ListMarketProductsResponse: {
+                    type: 'object',
+                    properties: {
+                        items: {
+                            type: 'array',
+                            items: {
+                                $ref: '#/components/schemas/MarketProduct',
+                            },
+                        },
+                        nextOffset: {
+                            type: 'integer',
+                            nullable: true,
+                            description:
+                                'Offset for next page; missing on last',
+                        },
+                        rate: { $ref: '#/components/schemas/RateInfo' },
+                    },
+                    required: ['items', 'rate'],
                 },
             },
             parameters: {

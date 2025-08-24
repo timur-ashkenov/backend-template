@@ -246,7 +246,7 @@ export class MoySkladClient {
   private buildDefaultHeaders(): HttpHeaders {
     return {
       "accept-encoding": "gzip",
-      accept: "application/json",
+      accept: "application/json;charset=utf-8",
       ...this.buildAuthHeader(),
     };
   }

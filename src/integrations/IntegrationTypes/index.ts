@@ -36,3 +36,5 @@ export type MarketProduct = {
 };
 
 export type AssortmentMeta = { size: number; offset: number; limit: number };
+
+export type RateInfo = { limit: number; remaining: number; retryAfter: number };

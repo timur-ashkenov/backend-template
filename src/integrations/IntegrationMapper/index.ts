@@ -11,11 +11,11 @@ export class MoySkladMapper {
     const article =
       row?.article != null && row.article !== "" ? String(row.article) : undefined;
 
-    const barcodes = this.pickBarcodes(row);
-    const price = this.extractPrice(row);
-    const stock = this.num(row?.stock);
-    const reserve = this.num(row?.reserve);
-    const imageUrls = this.extractImages(row);
+    const barcodes = MoySkladMapper.pickBarcodes(row);
+    const price = MoySkladMapper.extractPrice(row);
+    const stock = MoySkladMapper.num(row?.stock);
+    const reserve = MoySkladMapper.num(row?.reserve);
+    const imageUrls = MoySkladMapper.extractImages(row);
     const archived = Boolean(row?.archived);
 
     return {
@@ -35,7 +35,6 @@ export class MoySkladMapper {
   private static pickBarcodes(row: any): string[] {
     const out: string[] = [];
 
-    // 1) массив barcodes
     if (Array.isArray(row?.barcodes)) {
       for (const barcode of row.barcodes) {
         if (!barcode) continue;

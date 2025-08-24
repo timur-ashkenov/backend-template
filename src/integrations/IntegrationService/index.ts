@@ -3,6 +3,7 @@ import {
     MarketProduct,
     HttpHeaders,
     AssortmentMeta,
+    RateInfo
 } from '../IntegrationTypes';
 import { MoySkladClient } from '../IntegrationClient';
 import { MoySkladMapper } from '../IntegrationMapper';
@@ -14,7 +15,7 @@ export class MoySkladService {
     public async listMarketProducts(params: ListParams): Promise<{
         items: MarketProduct[];
         nextOffset?: number;
-        rate?: { limit: number; remaining: number; retryAfter: number };
+        rate: RateInfo;
     }> {
         const requestLimit = params.limit ?? 50;
 

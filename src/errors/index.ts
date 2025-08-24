@@ -1,16 +1,56 @@
 export class HttpError extends Error {
-    public readonly status: number;
-
-    constructor(status: number, message: string) {
+    constructor(
+        public readonly status: number,
+        message: string
+    ) {
         super(message);
-        this.status = status;
+
+        this.name = new.target.name;
+
         Object.setPrototypeOf(this, new.target.prototype);
+
+        if ((Error as any).captureStackTrace) {
+            (Error as any).captureStackTrace(this, new.target);
+        }
+    }
+}
+
+export class AuthError extends HttpError {
+    constructor(message = 'Unauthorized', status: 401 | 403 = 401) {
+        super(status, message);
+    }
+}
+
+export class RateLimitError extends HttpError {
+    constructor(
+        message = 'Too Many Requests',
+        public readonly retryAfterMs?: number
+    ) {
+        super(429, message);
+    }
+}
+
+export class ServerError extends HttpError {
+    constructor(status: number, message = 'Upstream server error') {
+        super(status === 0 ? 502 : status, message);
     }
 }
 
 export class BadRequestError extends HttpError {
     constructor(message = 'Bad request') {
         super(400, message);
+    }
+}
+
+export class UnauthorizedError extends HttpError {
+    constructor(message = 'Unauthorized') {
+        super(401, message);
+    }
+}
+
+export class ForbiddenError extends HttpError {
+    constructor(message = 'Forbidden') {
+        super(403, message);
     }
 }
 
@@ -29,11 +69,5 @@ export class ConflictError extends HttpError {
 export class UnprocessableEntityError extends HttpError {
     constructor(message = 'Unprocessable entity') {
         super(422, message);
-    }
-}
-
-export class UnauthorizedError extends HttpError {
-    constructor(message = 'Unauthorized') {
-        super(401, message);
     }
 }
