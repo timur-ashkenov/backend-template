@@ -1,4 +1,6 @@
+import MoySkaldDecoder from '../MoySkladDecoder';
 import { IProductBook, ProductBook } from '../../models/Product';
+import type { IClientProduct } from '../../domains/client';
 
 export class ProductService {
     public static async createProduct(data: IProductBook) {
@@ -17,7 +19,12 @@ export class ProductService {
         try {
             const list = await ProductBook.find({});
 
-            return list;
+            const decodedList: IClientProduct[] =
+                MoySkaldDecoder.decodeProductsList(list);
+
+            console.log('DECODED LIST: ', decodedList);
+
+            return decodedList;
         } catch (error) {
             console.error('Failed to find a list of products', error);
 
