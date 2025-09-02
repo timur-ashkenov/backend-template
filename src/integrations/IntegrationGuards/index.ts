@@ -1,6 +1,6 @@
 import { AssortmentMeta } from '../IntegrationTypes';
 
-export class MoySkladGuards {
+export class TypeGuardsService {
     public static isAssortmentMeta(
         metaLike: unknown
     ): metaLike is AssortmentMeta {

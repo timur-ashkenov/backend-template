@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import AuthRoutes from './routes/AuthRoutes/index'
-import productRoutes from './routes/ProductRoutes/index';
 import marketRoutes from './routes/MoySkladMarketRoutes';
 import transactionRoutes from './routes/TransactionRoutes/index';
 import { corsMiddleware } from './middlewares/CORS';
@@ -28,10 +27,9 @@ const PORT = process.env.PORT;
 
 app.get("/api/ping", (_req, res) => res.send("pong"));
 
-app.use(productRoutes);
 app.use(transactionRoutes);
 app.use(AuthRoutes);
-app.use("/api", marketRoutes);
+app.use(marketRoutes);
 app.use(errorHandler);
 
 setupSwagger(app);

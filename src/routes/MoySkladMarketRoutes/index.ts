@@ -71,6 +71,6 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/market/products', asyncHandler(MoySkladMarketController.list));
+router.get('/products', asyncHandler(MoySkladMarketController.fetchMarketProducts));
 
 export default router;

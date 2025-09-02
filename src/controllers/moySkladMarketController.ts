@@ -16,7 +16,7 @@ const client = new MoySkladClient({
 const service = new MoySkladService(client);
 
 export class MoySkladMarketController {
-  static async list(request: Request, response: Response) {
+  static async fetchMarketProducts(request: Request, response: Response) {
     const { limit, offset, search, includeImages, onlyActive } =
       request.query as Record<string, string | undefined>;
 

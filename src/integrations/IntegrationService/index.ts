@@ -1,13 +1,15 @@
+import { MoySkladClient } from '../IntegrationClient';
+import { MoySkladMapper } from '../IntegrationMapper';
+import { TypeGuardsService } from '../IntegrationGuards';
 import {
     ListParams,
     MarketProduct,
     HttpHeaders,
     AssortmentMeta,
-    RateInfo
+    RelativePath,
+    RateInfo,
+    asRelativePath
 } from '../IntegrationTypes';
-import { MoySkladClient } from '../IntegrationClient';
-import { MoySkladMapper } from '../IntegrationMapper';
-import { MoySkladGuards } from '../IntegrationGuards';
 
 export class MoySkladService {
     constructor(private readonly client: MoySkladClient) {}
@@ -31,8 +33,9 @@ export class MoySkladService {
 
         if (params.onlyActive !== false) query.filter = 'archived=false';
 
-        const response = await this.client.getJson<any>(
-            '/entity/assortment',
+        const response = await this.client.sendHttpRequestAndReturnJson<any>(
+            "GET",
+            asRelativePath('/entity/assortment'),
             query
         );
 
@@ -44,12 +47,12 @@ export class MoySkladService {
 
         const meta = response?.data?.meta;
         if (
-            MoySkladGuards.isAssortmentMeta(meta) &&
+            TypeGuardsService.isAssortmentMeta(meta) &&
             meta.offset + meta.limit < meta.size
         ) {
             nextOffset = meta.offset + meta.limit;
         }
-        if (!MoySkladGuards.isAssortmentMeta(meta) && items.length === limit) {
+        if (!TypeGuardsService.isAssortmentMeta(meta) && items.length === limit) {
             nextOffset = offset + limit;
         }
 

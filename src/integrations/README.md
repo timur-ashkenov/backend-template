@@ -1,32 +1,32 @@
 # Интеграция с «МойСклад»
 
 ## Что делает
-- Бэкенд ходит в `/entity/assortment` МоегоСклада и возвращает нормализованные `MarketProduct`.
-- Обрабатываются авторизация (Bearer/Basic), ретраи 429/5xx, таймауты, rate-лимиты.
-- Эндпоинт: `GET /api/market/products`.
+- The backend queries /entity/assortment from MoySklad and returns normalized MarketProduct objects.
+- Handles authorization (Bearer/Basic), retries on 429/5xx, timeouts, and rate limits.
+- Endpoint: GET /market/products.
 
-## Переменные окружения
+## Environment variables
 ```env
 MS_BASE_URL=https://api.moysklad.ru/api/remap/1.2
-# Один из вариантов авторизации:
+# One of the authorization options:
 MS_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-# или
+# or
 # MS_USER=login
 # MS_PASS=password
 
-# Необязательно:
+# Optional:
 MS_TIMEOUT_MS=10000
 MS_MAX_RETRIES=1
 
-## Эндпоинт
+## Endpoint
 GET /api/market/products?limit=&offset=&search=&includeImages=&onlyActive=
-limit — размер страницы. Если includeImages=true и limit > 100, ограничим до 100.
-offset — смещение (пагинация).
-search — строка поиска.
-includeImages — true/false, подгружать изображения (expand=images у МС).
-onlyActive — по умолчанию true (исключаем архивные). Передай false, чтобы вернуть все.
+limit — page size. If includeImages=true and limit > 100, it will be capped at 100.
+offset — pagination offset.
+search — search query string.
+includeImages — true/false, whether to load images (expand=images in MoySklad).
+onlyActive — defaults to true (exclude archived items). Pass false to return all.
 
-#Пример ответа
+#Example response
 {
   "items": [
     {

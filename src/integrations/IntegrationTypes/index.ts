@@ -1,3 +1,5 @@
+import path from 'path';
+
 export interface ClientConfig {
     baseURL: string;
     token?: string;
@@ -38,3 +40,26 @@ export type MarketProduct = {
 export type AssortmentMeta = { size: number; offset: number; limit: number };
 
 export type RateInfo = { limit: number; remaining: number; retryAfter: number };
+
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+export type RelativePath = string & { __brand: 'RelativePath' };
+
+export function asRelativePath(path: string): RelativePath {
+    if (path.startsWith('/')) {
+        throw new Error(`Path must be relative (no leading '/'): "${path}"`);
+    }
+    return path as RelativePath;
+}
+
+export enum HttpStatus {
+    OK = 200,
+    MULTIPLE_CHOICES = 300,
+    UNAUTHORIZED = 401,
+    FORBIDDEN = 403,
+    TOO_MANY_REQUESTS = 429,
+    INTERNAL_SERVER_ERROR = 500,
+    BAD_GATEWAY = 502,
+    SERVICE_UNAVAILABLE = 503,
+    NETWORK_CONNECT_TIMEOUT_ERROR = 599,
+}
