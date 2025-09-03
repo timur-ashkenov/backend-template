@@ -1,6 +1,6 @@
-import { MoySkladClient } from '../IntegrationClient';
-import { MoySkladMapper } from '../IntegrationMapper';
-import { TypeGuardsService } from '../IntegrationGuards';
+import { MoySkladClient } from '../../IntegrationClient';
+import { MoySkladMapper } from '../../IntegrationMapper';
+import { TypeGuardsService } from '../../IntegrationGuards';
 import {
     ListParams,
     MarketProduct,
@@ -9,7 +9,7 @@ import {
     RelativePath,
     RateInfo,
     asRelativePath
-} from '../IntegrationTypes';
+} from '../../IntegrationTypes';
 
 export class MoySkladService {
     constructor(private readonly client: MoySkladClient) {}
@@ -35,7 +35,7 @@ export class MoySkladService {
 
         const response = await this.client.sendHttpRequestAndReturnJson<any>(
             "GET",
-            asRelativePath('/entity/assortment'),
+            asRelativePath('entity/assortment'),
             query
         );
 

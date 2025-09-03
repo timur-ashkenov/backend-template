@@ -1,4 +1,13 @@
-// clients/MoySkladClient.ts
+import { RetryService } from '../IntegrationServices/RetryService';
+import { getObjectInLowercase } from '../../utils/objects';
+import { HTTPService } from '../../services/HTTPService';
+import { sleep } from '../../utils/constants';
+import {
+    AuthError,
+    RateLimitError,
+    ServerError,
+    HttpError,
+} from '../IntegrationErrors';
 import {
     ClientConfig,
     HttpHeaders,
@@ -7,29 +16,12 @@ import {
     HttpStatus,
     HttpMethod,
 } from '../IntegrationTypes';
-import {
-    AuthError,
-    RateLimitError,
-    ServerError,
-    HttpError,
-} from '../IntegrationErrors';
-import { HTTPService } from '../../services/HTTPService';
 
 export class MoySkladClient {
-    constructor(private readonly config: ClientConfig) {}
-    private toLowercaseHeaders(raw: any): HttpHeaders {
-        const out: HttpHeaders = {};
+    private readonly config: ClientConfig;
 
-        if (raw && typeof raw === 'object') {
-            for (const [key, value] of Object.entries(raw)) {
-                if (value == null) continue;
-
-                out[String(key).toLowerCase()] = Array.isArray(value)
-                    ? String(value[0])
-                    : String(value);
-            }
-        }
-        return out;
+    constructor(config: ClientConfig) {
+        this.config = config;
     }
 
     private buildUrl(
@@ -44,64 +36,17 @@ export class MoySkladClient {
         return querySet ? `${url}?${querySet}` : url;
     }
 
-    private parseRetryDelayMs(headers: HttpHeaders): number | null {
-        const timeinterval = headers['x-lognex-retry-timeinterval'];
-        if (timeinterval) {
-            const ms = Number(timeinterval);
-            if (Number.isFinite(ms) && ms >= 0) return ms;
-        }
-
-        const lognexAfter = headers['x-lognex-retry-after'];
-        if (lognexAfter) {
-            const sec = Number(lognexAfter);
-            if (Number.isFinite(sec) && sec >= 0) return sec * 1000;
-        }
-
-        const retryAfter = headers['retry-after'];
-        if (retryAfter) {
-            const num = Number(retryAfter);
-            if (Number.isFinite(num) && num >= 0) return num * 1000;
-
-            const when = Date.parse(retryAfter);
-            if (!Number.isNaN(when)) {
-                const delta = when - Date.now();
-                if (delta > 0) return delta;
-            }
-        }
-        return null;
-    }
-
-    private shouldRetry(status: number): boolean {
+    private isShouldRetry(status: number): boolean {
         if (status === HttpStatus.TOO_MANY_REQUESTS) return true;
+        
         if (
             status >= HttpStatus.INTERNAL_SERVER_ERROR &&
             status <= HttpStatus.NETWORK_CONNECT_TIMEOUT_ERROR
-        )
-            return true;
-
-        return false;
-    }
-
-    private computeBackoffMs(
-        status: number,
-        headers: HttpHeaders,
-        attempt: number
-    ): number {
-        const fromHeaders = this.parseRetryDelayMs(headers);
-
-        if (
-            status === HttpStatus.TOO_MANY_REQUESTS ||
-            status === HttpStatus.SERVICE_UNAVAILABLE
         ) {
-            if (fromHeaders != null) return fromHeaders;
-            return Math.min(1000 * (attempt + 1), 3000);
+            return true;
         }
 
-        const backoff = Math.min(150 * Math.pow(2, attempt), 1000);
-
-        const jitter = Math.floor(Math.random() * 100);
-
-        return backoff + jitter;
+        return false;
     }
 
     private classifyAndThrow(
@@ -112,20 +57,19 @@ export class MoySkladClient {
         if (status === HttpStatus.UNAUTHORIZED) {
             throw new AuthError(message, status as HttpStatus.UNAUTHORIZED);
         }
+
         if (status === HttpStatus.TOO_MANY_REQUESTS) {
             throw new RateLimitError(message, retryAfterMs);
         }
+
         if (
             status >= HttpStatus.INTERNAL_SERVER_ERROR &&
             status <= HttpStatus.NETWORK_CONNECT_TIMEOUT_ERROR
         ) {
             throw new ServerError(status, message);
         }
-        throw new HttpError(status, message);
-    }
 
-    private sleep(ms: number): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, ms));
+        throw new HttpError(status, message);
     }
 
     private buildAuthHeader(): HttpHeaders {
@@ -170,7 +114,7 @@ export class MoySkladClient {
         data: any;
     }> {
         const controller = new AbortController();
-        
+
         const timer = setTimeout(() => controller.abort(), timeoutMs);
 
         try {
@@ -182,10 +126,12 @@ export class MoySkladClient {
 
             const rawHeaders = Object.fromEntries(response.headers.entries());
 
-            const normalizedHeaders = this.toLowercaseHeaders(rawHeaders);
+            const normalizedHeaders = getObjectInLowercase(rawHeaders);
 
             let data: any = null;
+
             const contentType = normalizedHeaders['content-type'] || '';
+
             try {
                 if (contentType.includes('application/json')) {
                     data = await response.json();
@@ -225,7 +171,7 @@ export class MoySkladClient {
             method,
             path,
             params,
-            this.toLowercaseHeaders(mergedHeaders)
+            getObjectInLowercase(mergedHeaders)
         );
     }
 
@@ -237,13 +183,13 @@ export class MoySkladClient {
     ): Promise<HttpResponse<T>> {
         const base = (this.config.baseURL || '').replace(/\/+$/, '');
 
-        const url = this.buildUrl(base, path, params); 
+        const url = this.buildUrl(base, path, params);
 
         const timeoutMs = this.config.timeoutMs ?? 10_000;
 
         const maxRetries = this.config.maxRetries ?? 1;
 
-        const normalizedHeaders = this.toLowercaseHeaders(headers ?? {});
+        const normalizedHeaders = getObjectInLowercase(headers ?? {});
 
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
             try {
@@ -268,19 +214,19 @@ export class MoySkladClient {
 
                 const message = HTTPService.pickErrorMessage(data, statusText);
 
-                if (this.shouldRetry(status) && attempt < maxRetries) {
-                    const delay = this.computeBackoffMs(
+                if (this.isShouldRetry(status) && attempt < maxRetries) {
+                    const delay = RetryService.computeBackoffMs(
                         status,
                         respHeaders,
                         attempt
                     );
-                    await this.sleep(delay);
+                    await sleep(delay);
                     continue;
                 }
 
                 const retryAfterMs =
-                    this.parseRetryDelayMs(respHeaders) ?? undefined;
-                    
+                    RetryService.parseRetryDelayMs(respHeaders) ?? undefined;
+
                 this.classifyAndThrow(status, message, retryAfterMs);
             } catch (err: any) {
                 const isAbort = err?.name === 'AbortError';
@@ -291,8 +237,10 @@ export class MoySkladClient {
                     /network/i.test(String(err?.message || ''));
 
                 if (isNetworkLike && attempt < maxRetries) {
-                    const delay = this.computeBackoffMs(0, {}, attempt);
-                    await this.sleep(delay);
+                    const delay = RetryService.computeBackoffMs(0, {}, attempt);
+
+                    await sleep(delay);
+                    
                     continue;
                 }
 

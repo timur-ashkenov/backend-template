@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { MoySkladClient } from "../integrations/IntegrationClient";
-import { MoySkladService } from "../integrations/IntegrationService";
+import { MoySkladService } from "../integrations/IntegrationServices/MoySkladService";
 
 const client = new MoySkladClient({
   baseURL: process.env.MOYSKLAD_BASE_URL!,
