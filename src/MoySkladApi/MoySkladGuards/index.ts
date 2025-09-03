@@ -1,4 +1,4 @@
-import { AssortmentMeta } from '../IntegrationTypes';
+import { AssortmentMeta } from '../MoySkladTypes';
 
 export class TypeGuardsService {
     public static isAssortmentMeta(

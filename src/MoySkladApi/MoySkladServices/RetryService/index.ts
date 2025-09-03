@@ -1,4 +1,4 @@
-import { HttpHeaders, HttpStatus } from '../../IntegrationTypes';
+import { HttpHeaders, HttpStatus } from '../../MoySkladTypes';
 
 export class RetryService {
     static parseRetryDelayMs(headers: HttpHeaders): number | null {

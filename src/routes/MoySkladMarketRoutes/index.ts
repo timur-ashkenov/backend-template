@@ -9,39 +9,42 @@ const router = Router();
  * /market/products:
  *   get:
  *     tags: [MoySklad]
- *     summary: List market products
- *     description: Returns a normalized list of items from MyWarehouse (assortment) as a MarketProduct. By default, hides archived products (`archived=false`).
+ *     summary: List market products (normalized from MoySklad)
+ *     description: >
+ *       Returns a frontend-ready list of products mapped from MoySklad assortment
+ *       (title, price, availability, images, attributes, etc.). Also returns
+ *       pagination (`nextOffset`) and upstream rate-limit info (`rate`).
  *     parameters:
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           minimum: 1
- *         description: Page size. If includeImages=true and limit > 100 — will be limited to 100.
+ *         description: Page size. When includeImages=true and limit > 100, it is capped at 100 due to MoySklad expand limitations.
  *       - in: query
  *         name: offset
  *         schema:
  *           type: integer
  *           minimum: 0
- *         description: Selection bias (pagination).
+ *         description: Pagination offset.
  *       - in: query
  *         name: search
  *         schema:
  *           type: string
- *         description: Full-text search of the catalog in Moy sklad.
+ *         description: Full-text search within MoySklad assortment (e.g., by name or article).
  *       - in: query
  *         name: includeImages
  *         schema:
  *           type: boolean
- *         description: Pull images (expand=images). The answer is more difficult; the limit is capped at 100.
+ *         description: If true, image URLs are pulled (expand=images). This may impact performance; limit is capped at 100.
  *       - in: query
  *         name: onlyActive
  *         schema:
  *           type: boolean
- *         description: Defaults to true to exclude archived ones. Pass false to return everything.
+ *         description: By default, archived products are excluded (archived=false). Pass false to include all.
  *     responses:
  *       200:
- *         description: OK
+ *         description: Successful response
  *         content:
  *           application/json:
  *             schema:
@@ -59,7 +62,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *       429:
- *         description: Rate limited by upstream
+ *         description: Rate limited by upstream (MoySklad)
  *         content:
  *           application/json:
  *             schema:
@@ -71,6 +74,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+
 router.get('/products', asyncHandler(MoySkladMarketController.fetchMarketProducts));
 
 export default router;

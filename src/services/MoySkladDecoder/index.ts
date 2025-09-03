@@ -1,10 +1,10 @@
 import type { IProduct } from '../../domains/client';
-import { MoySkladMapper } from '../../integrations/IntegrationMapper';
+import { MoySkladMapper } from '../../MoySkladApi/MoySkladMapper';
 import { toNumberOrNull } from '../../utils/numbers';
 import { readMsAttr } from '../../utils/readMs';
 import { ATTR, COVER_TYPE_MAP } from '../../utils/constants';
 
-class MoySkladDecoder {
+export class MoySkladDecoder {
     public static decodeProductsList = (rows: any[]): IProduct[] => {
         return rows.map((row) => {
             const MarketProduct = MoySkladMapper.toMarketProduct(row);
@@ -12,7 +12,10 @@ class MoySkladDecoder {
             const pagesCount =
                 toNumberOrNull(readMsAttr(row, ATTR.PAGES_COUNT)) ?? 0;
 
-            const weight = toNumberOrNull(readMsAttr(row, ATTR.WEIGHT)) ?? 0;
+            const weight =
+                toNumberOrNull(row.weight) ??
+                toNumberOrNull(row.product?.weight) ??
+                0;
 
             const coverTypeRaw = String(readMsAttr(row, ATTR.COVER_TYPE) ?? '')
                 .trim()
@@ -38,7 +41,7 @@ class MoySkladDecoder {
                 toNumberOrNull(readMsAttr(row, ATTR.DISCOUNT)) ?? 0;
 
             const buyRaw = readMsAttr(row, ATTR.BUY_REASONS);
-            
+
             const buyReasons = Array.isArray(buyRaw)
                 ? buyRaw.map(String).filter(Boolean)
                 : String(buyRaw ?? '')
@@ -48,7 +51,12 @@ class MoySkladDecoder {
 
             const ISBN = MarketProduct.article ?? MarketProduct.code ?? '';
 
-            const isAvailable = (MarketProduct.stock ?? 0) > 0;
+            const availableRaw = readMsAttr(row, ATTR.IS_AVAILABLE);
+
+            const isAvailable =
+                typeof availableRaw === 'boolean'
+                    ? availableRaw
+                    : (MarketProduct.stock ?? 0) > 0;
 
             const product: IProduct = {
                 id: MarketProduct.id,

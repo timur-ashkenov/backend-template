@@ -1,4 +1,4 @@
-import { HttpHeaders } from '../../integrations/IntegrationTypes';
+import { HttpHeaders } from '../../MoySkladTypes';
 
 export class HTTPService {
     static buildQuery(params?: Record<string, any>): string {

@@ -1,13 +1,13 @@
-import { RetryService } from '../IntegrationServices/RetryService';
+import { RetryService } from '../MoySkladServices/RetryService';
 import { getObjectInLowercase } from '../../utils/objects';
-import { HTTPService } from '../../services/HTTPService';
+import { HTTPService } from '../MoySkladServices/HTTPService';
 import { sleep } from '../../utils/constants';
 import {
     AuthError,
     RateLimitError,
     ServerError,
     HttpError,
-} from '../IntegrationErrors';
+} from '../MoySkladErrors';
 import {
     ClientConfig,
     HttpHeaders,
@@ -15,7 +15,7 @@ import {
     RelativePath,
     HttpStatus,
     HttpMethod,
-} from '../IntegrationTypes';
+} from '../MoySkladTypes';
 
 export class MoySkladClient {
     private readonly config: ClientConfig;

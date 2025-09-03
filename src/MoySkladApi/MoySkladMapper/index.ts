@@ -1,6 +1,6 @@
 import { toNumberOrNull } from '../../utils/numbers';
 import { BARCODE_KEYS } from '../../utils/constants';
-import { MarketProduct } from '../IntegrationTypes';
+import { MarketProduct } from '../MoySkladTypes';
 
 export class MoySkladMapper {
     private static pickBarcodes(row: any): string[] {
@@ -12,7 +12,6 @@ export class MoySkladMapper {
 
                 for (const key of BARCODE_KEYS) {
                     const value = barcode[key];
-
                     if (value) out.push(String(value));
                 }
 
@@ -50,30 +49,59 @@ export class MoySkladMapper {
     }
 
     private static extractImages(row: any): string[] {
-        const out: string[] = [];
+        const urls: string[] = [];
 
-        const imageRows = row?.images?.rows;
+        const imageRowsSelf = row?.images?.rows ?? [];
 
-        if (Array.isArray(imageRows)) {
-            for (const imageRow of imageRows) {
-                const imageUrl =
-                    imageRow?.meta?.downloadHref || imageRow?.meta?.href;
+        const imageRowsParent = row?.product?.images?.rows ?? [];
 
-                if (imageUrl) out.push(String(imageUrl));
-            }
+        const singles = [row?.image, row?.product?.image].filter(Boolean);
+
+        const candidates: any[] = [
+            ...imageRowsSelf,
+            ...imageRowsParent,
+            ...singles,
+        ];
+
+        const pickUrl = (image: any): string | null => {
+            const miniature = image?.miniature?.href;
+
+            const tiny = image?.tiny?.href;
+
+            const small = image?.small?.href;
+
+            const medium = image?.medium?.href;
+
+            const big = image?.big?.href;
+
+            const download = image?.meta?.downloadHref;
+
+            const href = image?.meta?.href;
+
+            const url =
+                miniature ??
+                tiny ??
+                small ??
+                medium ??
+                big ??
+                download ??
+                href ??
+                null;
+
+            if (!url) return null;
+
+            const normalizedUrl = String(url).trim();
+            return normalizedUrl.length > 0 ? normalizedUrl : null;
+        };
+
+        for (const image of candidates) {
+            const url = pickUrl(image);
+            if (url) urls.push(url);
         }
-        const singleUrl =
-            row?.image?.meta?.downloadHref || row?.image?.meta?.href;
 
-        if (singleUrl) out.push(String(singleUrl));
+        const deduped = Array.from(new Set(urls));
 
-        return Array.from(
-            new Set(
-                out
-                    .map((value) => String(value).trim())
-                    .filter((value) => value.length > 0)
-            )
-        );
+        return deduped;
     }
 
     public static toMarketProduct(row: any): MarketProduct {
@@ -89,16 +117,15 @@ export class MoySkladMapper {
                 : undefined;
 
         const barcodes = MoySkladMapper.pickBarcodes(row);
-
         const price = MoySkladMapper.extractPrice(row);
-
         const stock = toNumberOrNull(row?.stock);
-
         const reserve = toNumberOrNull(row?.reserve);
 
         const imageUrls = MoySkladMapper.extractImages(row);
 
         const archived = Boolean(row?.archived);
+
+        const weight = toNumberOrNull(row?.weight ?? row?.product?.weight);
 
         return {
             id,

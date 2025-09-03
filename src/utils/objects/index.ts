@@ -1,4 +1,4 @@
-import { HttpHeaders } from '../../integrations/IntegrationTypes';
+import { HttpHeaders } from '../../MoySkladApi/MoySkladTypes';
 
 export function getObjectInLowercase(raw: any): HttpHeaders {
   const out: HttpHeaders = {};

@@ -1,4 +1,4 @@
-import { HttpStatus } from '../IntegrationTypes';
+import { HttpStatus } from '../MoySkladTypes';
 
 export class AuthError extends Error {
     status: HttpStatus.UNAUTHORIZED;

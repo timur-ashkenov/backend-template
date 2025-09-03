@@ -1,6 +1,24 @@
-import { Request, Response } from "express";
-import { MoySkladClient } from "../integrations/IntegrationClient";
-import { MoySkladService } from "../integrations/IntegrationServices/MoySkladService";
+import { Request, Response } from 'express';
+import { MoySkladClient } from '../MoySkladApi/MoySkladClient';
+import { MoySkladService } from '../MoySkladApi/MoySkladServices/MoySkladService';
+
+const toNumberOrUndefined = (value: unknown): number | undefined => {
+  if (value === undefined) return undefined;
+
+  const numeric = Number(value);
+
+  return Number.isFinite(numeric) ? numeric : undefined;
+};
+
+const toBooleanOrUndefined = (value: unknown): boolean | undefined => {
+  if (value === undefined) return undefined;
+
+  if (value === 'true' || value === true) return true;
+
+  if (value === 'false' || value === false) return false;
+
+  return undefined;
+};
 
 const client = new MoySkladClient({
   baseURL: process.env.MOYSKLAD_BASE_URL!,
@@ -10,28 +28,35 @@ const client = new MoySkladClient({
       ? { user: process.env.MS_USER, pass: process.env.MS_PASS }
       : undefined,
   timeoutMs: Number(process.env.MOYSKLAD_TIMEOUT_MS ?? 10000),
-
   maxRetries: Number(process.env.MS_MAX_RETRIES ?? 1),
 });
+
 const service = new MoySkladService(client);
 
 export class MoySkladMarketController {
   static async fetchMarketProducts(request: Request, response: Response) {
-    const { limit, offset, search, includeImages, onlyActive } =
-      request.query as Record<string, string | undefined>;
+    const limit = toNumberOrUndefined(request.query.limit) ?? 50;
 
-    const result = await service.listMarketProducts({
-      limit:  limit  !== undefined ? Number(limit)  : undefined,
-      offset: offset !== undefined ? Number(offset) : undefined,
-      search: typeof search === "string" ? search : undefined,
-      includeImages:
-        includeImages === "true" ? true :
-        includeImages === "false" ? false : undefined,
-      onlyActive:
-        onlyActive === "true" ? true :
-        onlyActive === "false" ? false : undefined,
+    const offset = toNumberOrUndefined(request.query.offset) ?? 0;
+
+    const search =
+      typeof request.query.search === 'string'
+        ? request.query.search
+        : undefined;
+
+    const includeImages = toBooleanOrUndefined(request.query.includeImages);
+
+    const onlyActive = toBooleanOrUndefined(request.query.onlyActive);
+
+    const { items, nextOffset, rate } = await service.listMarketProducts({
+      limit,
+      offset,
+      search,
+      includeImages,
+      onlyActive,
     });
 
-    return response.json(result);
+    return response.json({ items, nextOffset, rate });
   }
+  
 }
