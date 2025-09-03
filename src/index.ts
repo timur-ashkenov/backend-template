@@ -20,6 +20,10 @@ app.get('/test', (_, response) => {
     response.status(200).send('All is good');
 });
 
+app.get('/health', (_req, res) => {
+  res.status(200).json({ ok: true });
+});
+
 export const databaseConnection = new DataBaseConnection();
 databaseConnection.connectMongoDb();
 
