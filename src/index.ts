@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import AuthRoutes from './routes/AuthRoutes/index'
-import productRoutes from './routes/ProductRoutes/index';
+import marketRoutes from './routes/MoySkladMarketRoutes';
 import transactionRoutes from './routes/TransactionRoutes/index';
 import { corsMiddleware } from './middlewares/CORS';
 import { setupSwagger } from './docs/swaggerdoc';
@@ -29,9 +29,11 @@ databaseConnection.connectMongoDb();
 
 const PORT = process.env.PORT;
 
-app.use(productRoutes);
+app.get("/api/ping", (_req, res) => res.send("pong"));
+
 app.use(transactionRoutes);
 app.use(AuthRoutes);
+app.use(marketRoutes);
 app.use(errorHandler);
 
 setupSwagger(app);
