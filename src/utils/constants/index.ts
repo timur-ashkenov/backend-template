@@ -1,3 +1,5 @@
+import { CoverType } from '../../domains/client';
+
 export const EMAIL_BASE_STRUCTURE = /^(?=.{1,254}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const CODE_BASE_STRUCTURE = /^\d{6}$/;
@@ -26,26 +28,22 @@ export function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export const ATTR = {
-    IS_AVAILABLE: '8eeaa47a-86b1-11f0-0a80-14bc00992b60',
-    PAGES_COUNT: 'Pages Count',
-    WEIGHT: 'Weight',
-    COVER_TYPE: 'Cover Type',
-    ANNOTATION: 'Annotation',
-    PUBLISHER: 'Publisher',
-    PUBLISHER_BRAND: 'Publisher Brand',
-    BUY_REASONS: 'Buy Reasons',
-    AGE_RATING: 'Age Rating',
-    PUBLICATION_YEAR: 'Publication Year',
-    DISCOUNT: 'Discount',
-} as const;
+export enum MoySkladProductAttributes {
+    IS_AVAILABLE = '8eeaa47a-86b1-11f0-0a80-14bc00992b60',
+    PAGES_COUNT = 'Pages Count',
+    WEIGHT = 'Weight',
+    COVER_TYPE = 'Cover Type',
+    ANNOTATION = 'Annotation',
+    PUBLISHER = 'Publisher',
+    PUBLISHER_BRAND = 'Publisher Brand',
+    BUY_REASONS = 'Buy Reasons',
+    AGE_RATING = 'Age Rating',
+    PUBLICATION_YEAR = 'Publication Year',
+    DISCOUNT = 'Discount',
+}
 
-export const COVER_TYPE_MAP: Record<
-    string,
-    'PAPERBACK' | 'HARDCOVER' | 'DIGITAL'
-> = {
-    PAPERBACK: 'PAPERBACK',
-    HARDCOVER: 'HARDCOVER',
-    SOFTCOVER: 'PAPERBACK',
-    EBOOK: 'DIGITAL',
+export const COVER_TYPE_MAP: Record<string, CoverType> = {
+    PAPERBACK: CoverType.PAPERBACK,
+    HARDCOVER: CoverType.HARDCOVER,
+    DIGITAL: CoverType.DIGITAL,
 };

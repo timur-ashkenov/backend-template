@@ -38,7 +38,7 @@ export class MoySkladClient {
 
     private isShouldRetry(status: number): boolean {
         if (status === HttpStatus.TOO_MANY_REQUESTS) return true;
-        
+
         if (
             status >= HttpStatus.INTERNAL_SERVER_ERROR &&
             status <= HttpStatus.NETWORK_CONNECT_TIMEOUT_ERROR
@@ -102,53 +102,32 @@ export class MoySkladClient {
         };
     }
 
-    private async attemptOnce(
+    private async attemptOnce<T>(
         url: string,
         method: HttpMethod,
         headers: HttpHeaders,
         timeoutMs: number
-    ): Promise<{
-        status: number;
-        statusText: string;
-        headers: HttpHeaders;
-        data: any;
-    }> {
+    ): Promise<HttpResponse<T>> {
         const controller = new AbortController();
-
         const timer = setTimeout(() => controller.abort(), timeoutMs);
 
         try {
-            const response = await fetch(url, {
+            const {
+                status,
+                statusText,
+                headers: respHeaders,
+                data,
+            } = await HTTPService.requestWithJson<T>({
+                url,
                 method,
                 headers,
                 signal: controller.signal,
             });
 
-            const rawHeaders = Object.fromEntries(response.headers.entries());
-
-            const normalizedHeaders = getObjectInLowercase(rawHeaders);
-
-            let data: any = null;
-
-            const contentType = normalizedHeaders['content-type'] || '';
-
-            try {
-                if (contentType.includes('application/json')) {
-                    data = await response.json();
-                } else {
-                    const text = await response.text();
-                    try {
-                        data = JSON.parse(text);
-                    } catch {
-                        data = text;
-                    }
-                }
-            } catch {}
-
             return {
-                status: response.status,
-                statusText: response.statusText || '',
-                headers: normalizedHeaders,
+                status,
+                statusText,
+                headers: respHeaders,
                 data,
             };
         } finally {
@@ -198,7 +177,7 @@ export class MoySkladClient {
                     headers: respHeaders,
                     data,
                     statusText,
-                } = await this.attemptOnce(
+                } = await this.attemptOnce<T>(
                     url,
                     method,
                     normalizedHeaders,
@@ -212,7 +191,10 @@ export class MoySkladClient {
                     return { status, headers: respHeaders, data: data as T };
                 }
 
-                const message = HTTPService.pickErrorMessage(data, statusText);
+                const message = HTTPService.pickErrorMessage(
+                    data,
+                    statusText ?? ''
+                );
 
                 if (this.isShouldRetry(status) && attempt < maxRetries) {
                     const delay = RetryService.computeBackoffMs(
@@ -228,19 +210,19 @@ export class MoySkladClient {
                     RetryService.parseRetryDelayMs(respHeaders) ?? undefined;
 
                 this.classifyAndThrow(status, message, retryAfterMs);
-            } catch (err: any) {
-                const isAbort = err?.name === 'AbortError';
+            } catch (error: any) {
+                const isAbort = error?.name === 'AbortError';
 
                 const isNetworkLike =
                     isAbort ||
-                    err?.name === 'TypeError' ||
-                    /network/i.test(String(err?.message || ''));
+                    error?.name === 'TypeError' ||
+                    /network/i.test(String(error?.message || ''));
 
                 if (isNetworkLike && attempt < maxRetries) {
                     const delay = RetryService.computeBackoffMs(0, {}, attempt);
 
                     await sleep(delay);
-                    
+
                     continue;
                 }
 
@@ -248,7 +230,7 @@ export class MoySkladClient {
                     0,
                     isAbort
                         ? 'Request timeout'
-                        : err?.message || 'Network error'
+                        : error?.message || 'Network error'
                 );
             }
         }

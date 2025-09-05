@@ -2,45 +2,45 @@ import type { IProduct } from '../../domains/client';
 import { MoySkladMapper } from '../../MoySkladApi/MoySkladMapper';
 import { toNumberOrNull } from '../../utils/numbers';
 import { readMsAttr } from '../../utils/readMs';
-import { ATTR, COVER_TYPE_MAP } from '../../utils/constants';
+import { MoySkladProductAttributes, COVER_TYPE_MAP } from '../../utils/constants';
 
 export class MoySkladDecoder {
     public static decodeProductsList = (rows: any[]): IProduct[] => {
         return rows.map((row) => {
-            const MarketProduct = MoySkladMapper.toMarketProduct(row);
+            const MarketProduct = MoySkladMapper.getMarketProduct(row);
 
             const pagesCount =
-                toNumberOrNull(readMsAttr(row, ATTR.PAGES_COUNT)) ?? 0;
+                toNumberOrNull(readMsAttr(row, MoySkladProductAttributes.PAGES_COUNT)) ?? 0;
 
             const weight =
                 toNumberOrNull(row.weight) ??
                 toNumberOrNull(row.product?.weight) ??
                 0;
 
-            const coverTypeRaw = String(readMsAttr(row, ATTR.COVER_TYPE) ?? '')
+            const coverTypeRaw = String(readMsAttr(row, MoySkladProductAttributes.COVER_TYPE) ?? '')
                 .trim()
                 .toUpperCase();
 
             const coverType = COVER_TYPE_MAP[coverTypeRaw] ?? 'PAPERBACK';
 
-            const annotation = String(readMsAttr(row, ATTR.ANNOTATION) ?? '');
+            const annotation = String(readMsAttr(row, MoySkladProductAttributes.ANNOTATION) ?? '');
 
-            const publisher = String(readMsAttr(row, ATTR.PUBLISHER) ?? '');
+            const publisher = String(readMsAttr(row, MoySkladProductAttributes.PUBLISHER) ?? '');
 
             const publisherBrand = String(
-                readMsAttr(row, ATTR.PUBLISHER_BRAND) ?? ''
+                readMsAttr(row, MoySkladProductAttributes.PUBLISHER_BRAND) ?? ''
             );
 
-            const ageRating = String(readMsAttr(row, ATTR.AGE_RATING) ?? '');
+            const ageRating = String(readMsAttr(row, MoySkladProductAttributes.AGE_RATING) ?? '');
 
             const publicationYear = String(
-                readMsAttr(row, ATTR.PUBLICATION_YEAR) ?? ''
+                readMsAttr(row, MoySkladProductAttributes.PUBLICATION_YEAR) ?? ''
             );
 
             const discount =
-                toNumberOrNull(readMsAttr(row, ATTR.DISCOUNT)) ?? 0;
+                toNumberOrNull(readMsAttr(row, MoySkladProductAttributes.DISCOUNT)) ?? 0;
 
-            const buyRaw = readMsAttr(row, ATTR.BUY_REASONS);
+            const buyRaw = readMsAttr(row, MoySkladProductAttributes.BUY_REASONS);
 
             const buyReasons = Array.isArray(buyRaw)
                 ? buyRaw.map(String).filter(Boolean)
@@ -51,7 +51,7 @@ export class MoySkladDecoder {
 
             const ISBN = MarketProduct.article ?? MarketProduct.code ?? '';
 
-            const availableRaw = readMsAttr(row, ATTR.IS_AVAILABLE);
+            const availableRaw = readMsAttr(row, MoySkladProductAttributes.IS_AVAILABLE);
 
             const isAvailable =
                 typeof availableRaw === 'boolean'

@@ -1,10 +1,18 @@
 import { toNumberOrNull } from '../../utils/numbers';
 import { BARCODE_KEYS } from '../../utils/constants';
-import { MarketProduct } from '../MoySkladTypes';
+import {
+    MarketProduct,
+    MoySkladImage,
+    MoySkladImageCollection,
+    MoySkladImageLink,
+    MoySkladImageMeta,
+    MoySkladRowWithImages,
+    MoySkladImageLike
+} from '../MoySkladTypes';
 
 export class MoySkladMapper {
     private static pickBarcodes(row: any): string[] {
-        const out: string[] = [];
+        const barcodes: string[] = [];
 
         if (Array.isArray(row?.barcodes)) {
             for (const barcode of row.barcodes) {
@@ -12,26 +20,26 @@ export class MoySkladMapper {
 
                 for (const key of BARCODE_KEYS) {
                     const value = barcode[key];
-                    if (value) out.push(String(value));
+                    if (value) barcodes.push(String(value));
                 }
 
                 if (
                     !BARCODE_KEYS.some((key) => barcode[key]) &&
                     barcode.value
                 ) {
-                    out.push(String(barcode.value));
+                    barcodes.push(String(barcode.value));
                 }
             }
         }
 
         for (const key of BARCODE_KEYS) {
             const value = row?.[key];
-            if (value) out.push(String(value));
+            if (value) barcodes.push(String(value));
         }
 
         return Array.from(
             new Set(
-                out
+                barcodes
                     .map((value) => String(value).trim())
                     .filter((value) => value.length > 0)
             )
@@ -48,50 +56,57 @@ export class MoySkladMapper {
         return Math.round(value) / 100;
     }
 
-    private static extractImages(row: any): string[] {
+    private static extractImages(row: MoySkladRowWithImages): string[] {
         const urls: string[] = [];
 
         const imageRowsSelf = row?.images?.rows ?? [];
-
         const imageRowsParent = row?.product?.images?.rows ?? [];
+        const singles: MoySkladImageLike[] = [row?.image, row?.product?.image].filter(
+            Boolean
+        );
 
-        const singles = [row?.image, row?.product?.image].filter(Boolean);
-
-        const candidates: any[] = [
+        const candidates: MoySkladImageLike[] = [
             ...imageRowsSelf,
             ...imageRowsParent,
             ...singles,
         ];
 
-        const pickUrl = (image: any): string | null => {
-            const miniature = image?.miniature?.href;
+        const pickUrl = (image: MoySkladImageLike): string | null => {
+            if (!image) return null;
 
-            const tiny = image?.tiny?.href;
+            if (typeof image === 'string') {
+                const normalizedUrl = image.trim();
+                return normalizedUrl.length ? normalizedUrl : null;
+            }
 
-            const small = image?.small?.href;
+            const fromDownload =
+                image.miniature?.downloadHref ||
+                image.tiny?.downloadHref ||
+                image.small?.downloadHref ||
+                image.medium?.downloadHref ||
+                image.big?.downloadHref ||
+                image.meta?.downloadHref;
 
-            const medium = image?.medium?.href;
+            if (fromDownload) {
+                const normalizedUrl = String(fromDownload).trim();
+                if (normalizedUrl) return normalizedUrl;
+            }
 
-            const big = image?.big?.href;
+            const fromHref =
+                image.miniature?.href ||
+                image.tiny?.href ||
+                image.small?.href ||
+                image.medium?.href ||
+                image.big?.href ||
+                image.meta?.href ||
+                image.href;
 
-            const download = image?.meta?.downloadHref;
+            if (fromHref) {
+                const normalizedUrl = String(fromHref).trim();
+                if (normalizedUrl) return normalizedUrl;
+            }
 
-            const href = image?.meta?.href;
-
-            const url =
-                miniature ??
-                tiny ??
-                small ??
-                medium ??
-                big ??
-                download ??
-                href ??
-                null;
-
-            if (!url) return null;
-
-            const normalizedUrl = String(url).trim();
-            return normalizedUrl.length > 0 ? normalizedUrl : null;
+            return null;
         };
 
         for (const image of candidates) {
@@ -99,12 +114,10 @@ export class MoySkladMapper {
             if (url) urls.push(url);
         }
 
-        const deduped = Array.from(new Set(urls));
-
-        return deduped;
+        return Array.from(new Set(urls));
     }
 
-    public static toMarketProduct(row: any): MarketProduct {
+    public static getMarketProduct(row: any): MarketProduct {
         const id = String(row?.id ?? '');
         const name = String(row?.name ?? '');
 

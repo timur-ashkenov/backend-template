@@ -1,7 +1,7 @@
-export enum BookCoverTypes {
-  PAPERBACK = "PAPERBACK",
-  HARDCOVER = "HARDCOVER",
-  DIGITAL = "DIGITAL",
+export enum CoverType {
+  PAPERBACK = 'PAPERBACK',
+  HARDCOVER = 'HARDCOVER',
+  DIGITAL = 'DIGITAL',
 }
 
 export enum Ratings {
@@ -27,7 +27,7 @@ export interface IProduct {
   price: number;
   discount: number;
   isAvailable: boolean;
-  coverType: BookCoverTypes;
+  coverType: CoverType;
   pagesCount: number;
   weight: number;
   annotation: string;

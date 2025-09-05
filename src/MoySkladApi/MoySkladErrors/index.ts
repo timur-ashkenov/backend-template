@@ -13,15 +13,17 @@ export class AuthError extends Error {
 }
 
 export class RateLimitError extends Error {
-    status: HttpStatus.TOO_MANY_REQUESTS = HttpStatus.TOO_MANY_REQUESTS;
-    retryAfterMs?: number;
+  public readonly status: HttpStatus;
+  public readonly retryAfterMs?: number;
 
-    constructor(message = 'Rate limit exceeded', retryAfterMs?: number) {
-        super(message);
-        this.name = 'RateLimitError';
-        this.retryAfterMs = retryAfterMs;
-    }
+  constructor(message = 'Rate limit exceeded', retryAfterMs?: number) {
+    super(message);
+    this.name = 'RateLimitError';
+    this.status = HttpStatus.TOO_MANY_REQUESTS;
+    this.retryAfterMs = retryAfterMs;
+  }
 }
+
 
 export class ServerError extends Error {
     status: number;

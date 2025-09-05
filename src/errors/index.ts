@@ -16,8 +16,9 @@ export class HttpError extends Error {
 }
 
 export class AuthError extends HttpError {
-    constructor(message = 'Unauthorized', status: 401 | 403 = 401) {
+    constructor(message = 'Unauthorized', status: number = 401) {
         super(status, message);
+        this.name = 'AuthError'
     }
 }
 
