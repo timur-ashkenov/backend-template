@@ -1,0 +1,46 @@
+name: product-store
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_VERSION: 20-alpine
+    image: product-store/app:dev
+    env_file:
+      - ./.env
+    environment:
+      MONGO_HOST: mongo
+      MONGO_DB: ${MONGO_DB:-productdb}
+    ports:
+      - "${PORT}:${PORT}"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-qO-", "http://localhost:${PORT}/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    # volumes:
+    #   - .:/app
+    #   - /app/node_modules
+
+  mongo:
+    image: mongo:6
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: productdb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo-data:
