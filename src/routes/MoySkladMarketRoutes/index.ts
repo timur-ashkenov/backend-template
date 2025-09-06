@@ -8,11 +8,13 @@ import { ProductFeedService } from '../../services/ProductFeedService';
 import { MoySkladClient } from '../../MoySkladApi/MoySkladClient';
 import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
 import { MoySkladMarketController } from '../../controllers/moySkladMarketController';
+import { UgcMetaRepo } from '../../data/UGCMetaRepo';
 
 export function buildMoySkladMarketRouter(db: Db): Router {
     const router = Router();
 
     const ugcRepo = new UgcRepo(db);
+    const ugcMetaRepo = new UgcMetaRepo(db);
 
     const msClient = new MoySkladClient({
         baseURL: process.env.MOYSKLAD_BASE_URL!,
@@ -26,7 +28,7 @@ export function buildMoySkladMarketRouter(db: Db): Router {
     });
 
     const msService = new MoySkladService(msClient);
-    const feed = new ProductFeedService(msService, ugcRepo);
+    const feed = new ProductFeedService(msService, ugcRepo, ugcMetaRepo);
     const ctrl = new MoySkladMarketController(feed);
 
     /**

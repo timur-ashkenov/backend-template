@@ -53,12 +53,12 @@ export class UgcRepo {
       .toArray();
 
     const out = new Map<string, ProductStatsOut>();
-    for (const d of docs) {
-      out.set(d.productId, {
-        productId: d.productId,
-        salesCount: d.salesCount ?? 0,
-        ratingsCount: d.ratingsCount ?? 0,
-        averageRating: d.averageRating ?? 0,
+    for (const document of docs) {
+      out.set(document.productId, {
+        productId: document.productId,
+        salesCount: document.salesCount ?? 0,
+        ratingsCount: document.ratingsCount ?? 0,
+        averageRating: document.averageRating ?? 0,
       });
     }
     return out;

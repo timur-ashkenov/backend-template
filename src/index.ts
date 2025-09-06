@@ -28,6 +28,9 @@ async function bootstrap() {
         .collection('productStats')
         .createIndex({ productId: 1 }, { unique: true });
     await db.collection('reviews').createIndex({ productId: 1, createdAt: -1 });
+    await db
+    .collection("ugcMeta")
+    .createIndex({ productId: 1 }, { unique: true });
 
     app.use(transactionRoutes);
     app.use(AuthRoutes);

@@ -7,7 +7,7 @@ import {
     MoySkladImageLink,
     MoySkladImageMeta,
     MoySkladRowWithImages,
-    MoySkladImageLike
+    MoySkladImageLike,
 } from '../MoySkladTypes';
 
 export class MoySkladMapper {
@@ -58,12 +58,12 @@ export class MoySkladMapper {
 
     private static extractImages(row: MoySkladRowWithImages): string[] {
         const urls: string[] = [];
-
         const imageRowsSelf = row?.images?.rows ?? [];
         const imageRowsParent = row?.product?.images?.rows ?? [];
-        const singles: MoySkladImageLike[] = [row?.image, row?.product?.image].filter(
-            Boolean
-        );
+        const singles: MoySkladImageLike[] = [
+            row?.image,
+            row?.product?.image,
+        ].filter(Boolean);
 
         const candidates: MoySkladImageLike[] = [
             ...imageRowsSelf,
@@ -71,42 +71,40 @@ export class MoySkladMapper {
             ...singles,
         ];
 
+        const isMiniatureHost = (u: string) =>
+            /\/\/miniature-.*\.moysklad\.ru\/miniature\/.+\/documentminiature\//i.test(
+                u
+            );
+
         const pickUrl = (image: MoySkladImageLike): string | null => {
             if (!image) return null;
-
-            if (typeof image === 'string') {
-                const normalizedUrl = image.trim();
-                return normalizedUrl.length ? normalizedUrl : null;
-            }
+            if (typeof image === 'string') return image.trim() || null;
 
             const fromDownload =
-                image.miniature?.downloadHref ||
-                image.tiny?.downloadHref ||
-                image.small?.downloadHref ||
-                image.medium?.downloadHref ||
                 image.big?.downloadHref ||
+                image.medium?.downloadHref ||
+                image.small?.downloadHref ||
                 image.meta?.downloadHref;
 
-            if (fromDownload) {
-                const normalizedUrl = String(fromDownload).trim();
-                if (normalizedUrl) return normalizedUrl;
-            }
+            if (fromDownload) return String(fromDownload).trim();
 
             const fromHref =
-                image.miniature?.href ||
-                image.tiny?.href ||
-                image.small?.href ||
-                image.medium?.href ||
                 image.big?.href ||
+                image.medium?.href ||
+                image.small?.href ||
                 image.meta?.href ||
                 image.href;
 
-            if (fromHref) {
-                const normalizedUrl = String(fromHref).trim();
-                if (normalizedUrl) return normalizedUrl;
-            }
+            if (fromHref) return String(fromHref).trim();
 
-            return null;
+            // 3) миниатюры — ТОЛЬКО как самый последний fallback
+            const fallbacks =
+                image.tiny?.downloadHref ||
+                image.miniature?.downloadHref ||
+                image.tiny?.href ||
+                image.miniature?.href;
+
+            return fallbacks ? String(fallbacks).trim() : null;
         };
 
         for (const image of candidates) {
@@ -114,7 +112,13 @@ export class MoySkladMapper {
             if (url) urls.push(url);
         }
 
-        return Array.from(new Set(urls));
+        // убираем миниатюрные ссылки, если есть нормальные
+        const hasNonMini = urls.some((u) => !isMiniatureHost(u));
+        const filtered = hasNonMini
+            ? urls.filter((u) => !isMiniatureHost(u))
+            : urls;
+
+        return Array.from(new Set(filtered));
     }
 
     public static getMarketProduct(row: any): MarketProduct {
