@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import fs from 'node:fs';
+import type { Db } from 'mongodb';
 
 dotenv.config();
 
@@ -47,5 +48,11 @@ export class DataBaseConnection {
 
   public getIsDbConnected(): boolean {
     return this.isDbConnected;
+  }
+
+  public getNativeDb(): Db {
+    const db = mongoose.connection?.db as unknown as Db | undefined;
+    if (!db) throw new Error('Mongo connection is not ready');
+    return db;
   }
 }
