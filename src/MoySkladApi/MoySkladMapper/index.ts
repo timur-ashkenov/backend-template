@@ -97,7 +97,6 @@ export class MoySkladMapper {
 
             if (fromHref) return String(fromHref).trim();
 
-            // 3) миниатюры — ТОЛЬКО как самый последний fallback
             const fallbacks =
                 image.tiny?.downloadHref ||
                 image.miniature?.downloadHref ||
@@ -112,10 +111,9 @@ export class MoySkladMapper {
             if (url) urls.push(url);
         }
 
-        // убираем миниатюрные ссылки, если есть нормальные
-        const hasNonMini = urls.some((u) => !isMiniatureHost(u));
+        const hasNonMini = urls.some((urls) => !isMiniatureHost(urls));
         const filtered = hasNonMini
-            ? urls.filter((u) => !isMiniatureHost(u))
+            ? urls.filter((urls) => !isMiniatureHost(urls))
             : urls;
 
         return Array.from(new Set(filtered));
