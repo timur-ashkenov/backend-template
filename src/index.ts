@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 import express from 'express';
-import AuthRoutes from './routes/AuthRoutes/index'
-import marketRoutes from './routes/MoySkladMarketRoutes';
-import transactionRoutes from './routes/TransactionRoutes/index';
+import AuthRoutes from './routes/AuthRoutes';
+import { buildMoySkladMarketRouter } from './routes/MoySkladMarketRoutes';
+import transactionRoutes from './routes/TransactionRoutes';
 import { corsMiddleware } from './middlewares/CORS';
 import { setupSwagger } from './docs/swaggerdoc';
 import { errorHandler } from './middlewares/errorHandler';
@@ -10,34 +10,41 @@ import { DataBaseConnection } from './services/DatabaseConnectionService';
 
 dotenv.config();
 
-const app = express();
+async function bootstrap() {
+    const app = express();
 
-app.use(corsMiddleware);
+    app.use(corsMiddleware);
+    app.use(express.json());
 
-app.use(express.json());
+    app.get('/test', (_req, res) => res.status(200).send('All is good'));
+    app.get('/health', (_req, res) => res.status(200).json({ ok: true }));
+    app.get('/api/ping', (_req, res) => res.send('pong'));
 
-app.get('/test', (_, response) => {
-    response.status(200).send('All is good');
-});
+    const databaseConnection = new DataBaseConnection();
+    await databaseConnection.connectMongoDb(); 
+    const db = databaseConnection.getNativeDb(); 
 
-app.get('/health', (_req, res) => {
-  res.status(200).json({ ok: true });
-});
+    await db
+        .collection('productStats')
+        .createIndex({ productId: 1 }, { unique: true });
+    await db.collection('reviews').createIndex({ productId: 1, createdAt: -1 });
 
-export const databaseConnection = new DataBaseConnection();
-databaseConnection.connectMongoDb();
+    app.use(transactionRoutes);
+    app.use(AuthRoutes);
 
-const PORT = process.env.PORT;
+    app.use('/', buildMoySkladMarketRouter(db));
 
-app.get("/api/ping", (_req, res) => res.send("pong"));
+    setupSwagger(app);
 
-app.use(transactionRoutes);
-app.use(AuthRoutes);
-app.use(marketRoutes);
-app.use(errorHandler);
+    app.use(errorHandler);
 
-setupSwagger(app);
+    const PORT = Number(process.env.PORT) || 3000;
+    app.listen(PORT, () => {
+        console.log(`Express server is listening on http://localhost:${PORT}`);
+    });
+}
 
-app.listen(PORT, () => {
-    console.log(`Express server is listening on http://localhost:${PORT}`);
+bootstrap().catch((error) => {
+    console.error('Bootstrap failed:', error);
+    process.exit(1);
 });
