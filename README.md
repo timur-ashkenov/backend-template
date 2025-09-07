@@ -87,15 +87,8 @@ To safely serve MoySklad images to clients without exposing credentials or runni
 ```bash
 npm install
 
-# Start MongoDB (pick one):
-docker run -d --name product-mongo -p 27017:27017 mongo:6
-# or run a local mongod instance
-
 # Run in dev (hot reload)
 npm run dev
-# or build & start
-npm run build
-npm start
 ```
 
 - Health: `http://localhost:3000/health` → `{ "ok": true }`
