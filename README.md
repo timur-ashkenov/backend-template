@@ -25,7 +25,7 @@ This service provides:
 - **Swagger (OpenAPI 3.0)** via `swagger-jsdoc` & `swagger-ui-express`
 - **nodemailer / SMTP** (email verification flow)
 - **axios** (HTTP client for some routes/proxies)
-- **dotenv** (env config), **cors**, **bcryptjs** (if needed by auth domain)
+- **dotenv** (env config), **cors**
 - **Docker / docker-compose**
 
 ---
