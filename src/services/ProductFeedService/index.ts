@@ -51,24 +51,26 @@ export class ProductFeedService {
                 productIds,
                 params.reviewsLimit ?? 3
             ),
-            this.ugcMetaRepo.getByProductIds(productIds), 
+            this.ugcMetaRepo.getByProductIds(productIds),
         ]);
 
         const items = baseItems.map((product) => {
             const raws: ReviewOut[] = reviewsMap.get(product.id) ?? [];
-            const reviews = raws.map((raw): (typeof product.reviews)[number] => ({
-                author: raw.author || raw.userId || 'Аноним',
-                title: raw.title,
-                text: raw.text,
-                rating: this.clamp(
-                    Number(raw.rating) || 1,
-                    1,
-                    4
-                ) as (typeof product.reviews)[number]['rating'],
-                date: this.toIso(raw.createdAt),
-                likesCount: raw.likesCount ?? 0,
-                dislikeCount: raw.dislikeCount ?? 0,
-            })) as typeof product.reviews;
+            const reviews = raws.map(
+                (raw): (typeof product.reviews)[number] => ({
+                    author: raw.author || raw.userId || 'Аноним',
+                    title: raw.title,
+                    text: raw.text,
+                    rating: this.clamp(
+                        Number(raw.rating) || 1,
+                        1,
+                        4
+                    ) as (typeof product.reviews)[number]['rating'],
+                    date: this.toIso(raw.createdAt),
+                    likesCount: raw.likesCount ?? 0,
+                    dislikeCount: raw.dislikeCount ?? 0,
+                })
+            ) as typeof product.reviews;
 
             const stats: ProductStatsOut | undefined = statsMap.get(product.id);
 
@@ -81,6 +83,7 @@ export class ProductFeedService {
                 publicationYear?: string | number;
                 pagesCount?: number;
                 discount?: number;
+                isAvailable?: boolean; // 👈 добавили сюда
             };
             const meta = metaByProductId.get(product.id) as
                 | MetaPatch
@@ -89,6 +92,7 @@ export class ProductFeedService {
             return {
                 ...product,
 
+                // 👇 мета-данные заполняем только если в продукте пусто
                 annotation: this.emptyStr((product as any).annotation)
                     ? (meta?.annotation ?? '')
                     : (product as any).annotation,
@@ -120,6 +124,11 @@ export class ProductFeedService {
                 discount: this.isZeroNum((product as any).discount)
                     ? (meta?.discount ?? 0)
                     : (product as any).discount,
+
+                isAvailable:
+                    typeof meta?.isAvailable === 'boolean'
+                        ? meta.isAvailable
+                        : ((product as any).isAvailable ?? false),
 
                 reviews,
                 salesCount: stats?.salesCount ?? 0,

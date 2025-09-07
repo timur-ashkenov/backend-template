@@ -10,6 +10,7 @@ export type UgcMetaDoc = {
     publicationYear?: string | number;
     pagesCount?: number;
     discount?: number;
+    isAvailable?: boolean;
 };
 
 export type UgcMetaOut = {
@@ -22,4 +23,5 @@ export type UgcMetaOut = {
     publicationYear: string | number;
     pagesCount: number;
     discount: number;
+    isAvailable: boolean;
 };

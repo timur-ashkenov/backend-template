@@ -29,6 +29,7 @@ export class UgcMetaRepo {
                 publicationYear: document.publicationYear ?? '',
                 pagesCount: document.pagesCount ?? 0,
                 discount: document.discount ?? 0,
+                isAvailable: document.isAvailable ?? false,
             });
         }
 

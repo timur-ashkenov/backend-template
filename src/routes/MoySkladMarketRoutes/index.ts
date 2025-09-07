@@ -96,7 +96,7 @@ async function streamImageResponse(
         );
     }
     response.setHeader('Content-Disposition', 'inline');
-    
+
     response.setHeader('Cache-Control', 'public, max-age=86400, immutable');
 
     upstream.data.pipe(response);
@@ -132,9 +132,11 @@ export function buildMoySkladMarketRouter(db: Db): Router {
         '/image-by-url',
         asyncHandler(async (request, response) => {
             const rawHref = String(request.query.href || '');
+
             if (!rawHref) return response.status(400).send('href required');
 
             let hrefUrl: URL;
+            
             try {
                 hrefUrl = new URL(rawHref);
             } catch {
