@@ -29,6 +29,10 @@ cd backend-template
 git checkout demonstration
 ```
 
+## 1.1) Enviromental variables
+
+Before running the project, clone a .env file into the root directory of the project (backend-template/.env).
+
 ---
 
 ## 2) Project Overview
