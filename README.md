@@ -5,208 +5,169 @@ Built with **Node.js + Express + TypeScript + MongoDB** and documented with **Sw
 
 ---
 
-## 1) Project Overview
+## 0) Prerequisites
+
+Install the following tools before you start:
+
+- [Node.js (v20+)](https://nodejs.org/en/download/)
+- [npm (v9+)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) *(bundled with Node)*
+- [MongoDB Community (v6+)](https://www.mongodb.com/try/download/community)
+- [MongoDB Compass](https://www.mongodb.com/products/tools/compass) *(GUI client — used to import JSON seed data)*
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) *(for containerized setup)*
+
+> **You always need Node.js + npm.**  
+> **MongoDB + Compass** are needed if you prefer running locally without Docker or if you want to import seed data via GUI.  
+> **Docker** is needed only for the containerized setup.
+
+---
+
+## 1) Clone the Repository
+
+```bash
+git clone https://github.com/shivada727/backend-template.git
+cd backend-template
+git checkout demonstration
+```
+
+---
+
+## 2) Project Overview
 
 This service provides:
 
-- **Product catalog** from **MoySklad**: fetches assortment, normalizes to a frontend-friendly shape, merges **UGC** (reviews, counters, ratings) from MongoDB, and optionally resolves product **images** via a safe proxy.
-- **Email verification (SMTP)**: request and verify a 6‑digit code to authenticate users.
-- **Transactions**: create and list purchase-like transactions stored in MongoDB.
-- **Operational endpoints**: `/health`, `/api/ping`, `/test` for sanity checks.
-- **Swagger UI** at `/docs` (and `/docs.json` for the raw spec).
+- **Product catalog** from **MoySklad** (normalized to a frontend-friendly shape, UGC enrichment, safe image proxy).
+- **Email verification (SMTP)**: request & verify a 6‑digit code.
+- **Transactions**: create/list transactions persisted in MongoDB.
+- **Healthcheck**: `/health`, `/api/ping`, `/test`.
+- **Swagger UI**: `/docs` (raw spec: `/docs.json`).
 
 ---
 
-## 2) Technology Stack
+## 3) Database Initialization
 
-- **Node.js** + **TypeScript**
-- **Express 5**
-- **MongoDB** (native driver via `mongodb` in `DataBaseConnectionService`; indexes created on startup)
-- **Swagger (OpenAPI 3.0)** via `swagger-jsdoc` & `swagger-ui-express`
-- **nodemailer / SMTP** (email verification flow)
-- **axios** (HTTP client for some routes/proxies)
-- **dotenv** (env config), **cors**
-- **Docker / docker-compose**
+On startup, the backend **creates indexes automatically**:
 
----
+- `productStats` → unique index on `productId`  
+- `reviews` → compound index on (`productId`, `createdAt`)  
+- `ugcMeta` → unique index on `productId`  
 
-## 3) Integration Services
+The database (`productdb` by default) is created automatically at first insert.
 
-### 3.1 HTTPService
-Resilient HTTP wrapper used by the MoySklad client layer:
+### Import seed data **with MongoDB Compass**
 
-- `requestWithJson(args)` — wraps `fetch` with:
-  - **timeout** via `AbortController` (`timeoutMs`),
-  - **merged AbortSignals** (caller + timeout) with `mergeAbortSignals`,
-  - header normalization (`toLowercaseHeaders`),
-  - safe JSON handling (`safeJson` + `tryParseJson` fallback),
-  - unified response `{ status, statusText, headers, data }`.
-- `buildQuery`, `buildUrl` — robust querystring and URL builder (arrays supported).
-- `pickErrorMessage` — extracts meaningful error messages from upstream payloads.
+Use the JSON files provided in the repo to prefill collections:
 
-**Purpose:** consistent HTTP behavior, safer parsing, clean error surfaces.
+- `productStats.json` → `productStats` collection  
+- `reviews.json` → `reviews` collection  
+- `ugc-meta.json` → `ugcMeta` collection  
 
-### 3.2 RetryService
-Backoff & retry timing based on upstream headers and status codes:
+**Steps (MongoDB Compass):**
 
-- Parses MoySklad and standard headers: `x-lognex-retry-timeinterval` (ms), `x-lognex-retry-after` (sec), `retry-after` (sec or HTTP-date).
-- `computeBackoffMs(status, headers, attempt)`:
-  - For **429/503** → honor upstream hints, then limited linear fallback.
-  - Otherwise → exponential backoff with jitter.
+1. Open **MongoDB Compass**.  
+2. Connect to your database:
+   - Local (no Docker): `mongodb://127.0.0.1:27017/productdb`
+   - Docker Compose: `mongodb://localhost:27017/productdb`
+3. In the collections you need to delete all data if there any and click green button **Add Data**. Choose Import JSON or CSVN file  
+4. For each collection (`productStats`, `reviews`, `ugcMeta`) you are picking the right .json file.
+    
 
-**Purpose:** respect MoySklad rate limits and stabilize traffic.
+After import, you can immediately test `/products` (UGC enrichment will use these documents).
 
-### 3.3 MoySkladService
-High-level API for MoySklad assortment & normalized market products:
-
-- **Assortment fetch** with `expand=product` and optionally `expand=images`.
-- **Effective limit**: when `includeImages=true`, limit is **clamped to 100** (API/throughput constraint).
-- **Image enrichment** (`enrichRowsWithImages`):
-  - If a row lacks `images.rows`, try its **own image collection**;
-  - Fallback to **parent product**: `entity/product/{id}?expand=images`.
-  - Runs concurrently (up to 8 jobs) to balance speed/rate-limits.
-- **Rate info extraction** from headers (`limit`, `remaining`, `retryAfter`) and **nextOffset** calculation from `meta` or by page-size heuristic.
-- Exported methods:
-  - `listAssortmentRaw(params): { rows, nextOffset, rate }`
-  - `listMarketProducts(params): { items, nextOffset, rate }` — decodes to `IProduct` via `MoySkladDecoder` (frontend-friendly schema).
-
-**Related components:** `MoySkladClient`, `TypeGuardsService`, `MoySkladDecoder`, `ProductFeedService` (merges MS data with UGC via `UgcRepo`, `UgcMetaRepo`).
-
-### 3.4 Image Proxy Helpers
-To safely serve MoySklad images to clients without exposing credentials or running into CORS:
-
-- `/image-by-url?href=<MS_URL>` — validates host, resolves `downloadHref` from `entity/image/{id}` or `.../download/{id}`, streams image with correct headers and caching.
-- `/external?url=<ALLOWED_URL>` — proxy for whitelisted hosts (e.g., `miniature-prod.moysklad.ru`).
+> If you run Mongo inside Docker, Compass connects to the host's mapped port (`localhost:27017`) — Compose already exposes it.
 
 ---
 
-## 4) Local Development & Docker
-
-### Option A — Local (no Docker)
+## 4) Local Development (without Docker)
 
 ```bash
+# Install dependencies
 npm install
 
-# Run in dev (hot reload)
+# Run the server in dev mode (hot reload)
 npm run dev
 ```
 
-- Health: `http://localhost:3000/health` → `{ "ok": true }`
-- Swagger: `http://localhost:3000/docs` (raw spec: `/docs.json`)
+Open in the browser:
 
-### Option B — Docker Compose
+- Healthcheck → http://localhost:3000/health  
+- Swagger UI → http://localhost:3000/docs
 
-`docker-compose.yml` defines **app** and **mongo** services.
+---
+
+## 5) Run with Docker Compose
+
+1. Build and start containers:
 
 ```bash
 docker-compose up --build
 ```
 
-- The app will use `./.env` (`env_file`), plus `MONGO_HOST=mongo` and `MONGO_DB` from compose env.
-- Healthcheck (from compose): `GET http://localhost:${PORT}/health`
-- Swagger: `http://localhost:${PORT}/docs`
+2. Verify containers are up:
 
-> If you need to live-edit code inside the container, uncomment the `volumes` section in `docker-compose.yml`.
+```bash
+docker ps
+```
+
+You should see:
+- `product-store_app` (backend)
+- `product-store_mongo` (MongoDB)
+
+3. Verify in the browser:
+
+- Healthcheck → http://localhost:3000/health  → should return `{ "ok": true }`  
+- Swagger UI → http://localhost:3000/docs
+
+4. Stop containers when done:
+
+```bash
+docker-compose down
+```
 
 ---
 
-## 5) HTTP Routes
+## 6) HTTP Routes (highlights)
 
-### 5.1 Operational
+### Operational
 - `GET /health` → `{ ok: true }`
 - `GET /api/ping` → `"pong"`
 - `GET /test` → `"All is good"`
 
-### 5.2 Auth — Email Verification (SMTP)
+### Auth — Email Verification (SMTP)
+- `POST /auth/email/request` → request a 6‑digit code (valid ~1h; 60s re‑request guard)
+- `POST /auth/email/verify` → verify the code (single‑use; expires ~1h)
 
-- `POST /auth/email/request` — request 6‑digit code (valid ~1 hour).  
-  If a valid code was requested **< 60s** ago, the request is accepted without re-sending.
+### MoySklad Market & Images
+- `GET /products` → list products (supports `limit`, `offset`, `search`, `includeImages`, `onlyActive`, `reviewsLimit`)
+- `GET /image-by-url?href=...` → resolve & stream an image from MoySklad
+- `GET /external?url=...` → proxy image from whitelisted hosts
 
-  **Body**
-  ```json
-  { "email": "user@example.com" }
-  ```
-  **200 OK** → `{ "ok": true }` • **422** → `{ "error": "invalid_email" }`
-
-- `POST /auth/email/verify` — verify the 6‑digit code. Single-use, expires ~1 hour.
-
-  **Body**
-  ```json
-  { "email": "user@example.com", "code": "123456" }
-  ```
-  **200 OK** → `{ "ok": true, "userExists": false }`  
-  **401** → `{ "error": "invalid_code" }` or `{ "error": "expired_code" }`  
-  **422** → `{ "error": "invalid_input" }`
-
-### 5.3 MoySklad Market & Images
-
-- `GET /products` — list products from MoySklad enriched with UGC.
-
-  **Query params**
-  - `limit` *(int, default 50)* — page size. When `includeImages=true`, max **100**.
-  - `offset` *(int, default 0)* — pagination offset.
-  - `search` *(string)* — search term for assortment.
-  - `includeImages` *(boolean)* — expand images; service will enrich if missing.
-  - `onlyActive` *(boolean, default true)* — exclude archived (`archived=false`).
-  - `reviewsLimit` *(int, default 3)* — number of recent reviews per product.
-
-  **200 OK**
-  ```json
-  {
-    "items": [ /* MarketCatalogItem[] */ ],
-    "nextOffset": 100,
-    "rate": { "limit": 60, "remaining": 59, "retryAfter": 0 }
-  }
-  ```
-
-- `GET /image-by-url?href=<moysklad_url>` — resolve and stream MoySklad image (entity/download).  
-  **400** invalid host/path • **404** not found • **502** upstream failure.
-
-- `GET /external?url=<allowed_url>` — proxy image from whitelisted host(s), e.g. `miniature-prod.moysklad.ru`.
-
-### 5.4 Transactions
-- `POST /transactions` — create transaction.  
-  **Body** → `TransactionCreateInput`
-  ```json
-  { "userId": "user123", "amount": 2500, "products": ["<id1>", "<id2>"] }
-  ```
-  **201 Created** → `Transaction`
-
-- `GET /transactions` — list transactions.  
-  **200 OK** → `Transaction[]`
-
-> **Swagger tags:** `Auth`, `MoySklad`, `Transactions`  
-> **Schemas:** `EmailRequest`, `EmailVerifyRequest`, `AuthOk`, `AuthVerifyOk`, `ErrorResponse`, `MarketCatalogItem`, `Review`, `RateInfo`, `ListMarketProductsResponse`, `Transaction`, `TransactionCreateInput`.
+### Transactions
+- `POST /transactions` → create
+- `GET /transactions` → list
 
 ---
 
-## 6) Scripts
-
-From `package.json`:
+## 7) Scripts
 
 ```json
 {
-  "scripts": {
-    "dev": "nodemon -r dotenv/config --exec ts-node src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "format": "prettier --write ."
-  }
+  "dev": "nodemon -r dotenv/config --exec ts-node src/index.ts",
+  "build": "tsc",
+  "start": "node dist/index.js",
+  "format": "prettier --write ."
 }
 ```
 
-- **Dev:** `npm run dev` (dotenv loaded, ts-node via nodemon)  
-- **Build:** `npm run build` (emits `dist`)  
-- **Start:** `npm start` (runs compiled server)
+- `npm run dev` → development (ts-node + nodemon)  
+- `npm run build` → compile TypeScript to `dist`  
+- `npm start` → run compiled server  
 
 ---
 
-## 7) Troubleshooting
+## 8) Troubleshooting
 
-- **Swagger not found** → ensure server started; docs mounted at `/docs`. Raw spec: `/docs.json`.
-- **Mongo connection issues** → verify `MONGO_HOST`/`MONGO_DB` (or `MONGO_URL`) and that Mongo is running (`docker ps`, container logs).
-- **SMTP errors** → check `SMTP_*`, port/TLS; for Gmail use **App Passwords**.
-- **MoySklad rate-limits (429)** → `RetryService` respects upstream headers; consider increasing `MS_MAX_RETRIES` and watch `retryAfter`.
-- **Images missing** → use `includeImages=true`; effective limit ≤ **100**; enrichment will try self collection then parent product.
-- **Module not found (`swagger-jsdoc`, etc.)** → `npm install` to re-install deps.
-
+- **Swagger not found** → ensure server started; docs mounted at `/docs` (`/docs.json` for spec).
+- **Mongo connection issues** → check that Mongo is running and Compass connects to `productdb`.
+- **SMTP errors** → verify `SMTP_*` and TLS/ports; Gmail requires **App Passwords**.
+- **MoySklad 429** → the integration layer honors upstream rate headers; wait for `retryAfter`.
+- **Images missing** → use `includeImages=true`; effective limit ≤ **100**; enrichment tries self collection then parent product.
