@@ -12,6 +12,7 @@ export interface MoySkladMediaServiceOptions {
 
 export class MoySkladMediaService {
     private readonly moyskladHostname: string;
+
     private readonly allowMiniatureProxy: boolean;
 
     constructor(options: MoySkladMediaServiceOptions = {}) {
@@ -60,6 +61,7 @@ export class MoySkladMediaService {
             const value = row?.[key];
             if (value != null && value !== '') {
                 const normalized = this.toNormalizedNonEmptyString(value);
+
                 if (normalized) collected.push(normalized);
             }
         }
@@ -69,8 +71,11 @@ export class MoySkladMediaService {
 
     public extractSalePriceRub(row: any): number | null {
         const rawValue = row?.salePrices?.[0]?.value;
+
         const numericValue = Number(rawValue);
+
         if (!Number.isFinite(numericValue) || numericValue <= 0) return null;
+
         return Math.round(numericValue) / 100;
     }
 
@@ -117,12 +122,15 @@ export class MoySkladMediaService {
 
     private toNormalizedNonEmptyString(value: unknown): string | null {
         const normalized = String(value ?? '').trim();
+
         return normalized.length > 0 ? normalized : null;
     }
 
     private toUniqueStringList(values: string[]): string[] {
         const seen = new Set<string>();
+
         const result: string[] = [];
+
         for (const value of values) {
             if (!seen.has(value)) {
                 seen.add(value);
@@ -142,6 +150,7 @@ export class MoySkladMediaService {
 
     private resolveProxyUrl(absoluteUrl: string): string | null {
         let parsedUrl: URL;
+
         try {
             parsedUrl = new URL(absoluteUrl);
         } catch {
