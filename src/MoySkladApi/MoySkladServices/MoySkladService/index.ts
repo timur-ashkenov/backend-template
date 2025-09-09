@@ -1,7 +1,7 @@
 import MoySkladDecoder from '../../../services/MoySkladDecoder';
 import type { IProduct } from '../../../domains/client';
-import { MoySkladClient } from '../../MoySkladClient';
 import { TypeGuardsService } from '../../MoySkladGuards';
+import { MoySkladClient } from '../../MoySkladClient';
 import {
     IListParams,
     THttpHeaders,

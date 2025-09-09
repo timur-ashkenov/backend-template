@@ -1,7 +1,7 @@
-import { UgcRepo } from '../../data/UGCRepo';
 import type { ReviewOut, ProductStatsOut } from '../../types/UGCTypes';
 import type { IListParams } from '../../MoySkladApi/MoySkladTypes';
 import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
+import { UgcRepo } from '../../data/UGCRepo';
 
 export class ProductFeedService {
     constructor(

@@ -49,6 +49,7 @@ export const COVER_TYPE_MAP: Record<string, CoverType> = {
 };
 
 export const DEFAULT_MOYSKLAD_BASE_URL = 'https://api.moysklad.ru/api/remap/1.2/';
+
 export const MINIATURE_HOSTNAME = 'miniature-prod.moysklad.ru';
 
 export const MOYSKLAD_HOSTNAME = (() => {
@@ -63,5 +64,6 @@ export const MOYSKLAD_HOSTNAME = (() => {
 export const DEFAULT_MOYSKLAD_HOSTNAME = 'api.moysklad.ru';
 
 export const RE_DOWNLOAD = /\/download\/[0-9a-f-]{36}$/i;
+
 export const RE_ENTITY_IMAGE = /\/entity\/image\/[0-9a-f-]{36}$/i;
 

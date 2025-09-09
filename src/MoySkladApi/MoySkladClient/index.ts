@@ -1,6 +1,6 @@
 import { RetryService } from '../MoySkladServices/RetryService';
-import { getObjectInLowercase } from '../../utils/objects';
 import { HTTPService } from '../MoySkladServices/HTTPService';
+import { getObjectInLowercase } from '../../utils/objects';
 import { sleep } from '../../utils/constants';
 import {
     AuthError,
