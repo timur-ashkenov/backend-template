@@ -4,7 +4,6 @@ import axios from 'axios';
 import { asyncHandler } from '../../middlewares/asyncHandler';
 
 import { UgcRepo } from '../../data/UGCRepo';
-import { UgcMetaRepo } from '../../data/UGCMetaRepo';
 import { ProductFeedService } from '../../services/ProductFeedService';
 import { MoySkladClient } from '../../MoySkladApi/MoySkladClient';
 import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
@@ -107,8 +106,6 @@ export function buildMoySkladMarketRouter(db: Db): Router {
 
     const ugcRepo = new UgcRepo(db);
 
-    const ugcMetaRepo = new UgcMetaRepo(db);
-
     const moySkladClient = new MoySkladClient({
         baseURL: process.env.MOYSKLAD_BASE_URL!,
         token: process.env.MOYSKLAD_TOKEN,
@@ -123,8 +120,7 @@ export function buildMoySkladMarketRouter(db: Db): Router {
     const moySkladService = new MoySkladService(moySkladClient);
     const feedService = new ProductFeedService(
         moySkladService,
-        ugcRepo,
-        ugcMetaRepo
+        ugcRepo
     );
     const controller = new MoySkladMarketController(feedService);
 

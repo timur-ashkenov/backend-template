@@ -29,7 +29,7 @@ export function sleep(ms: number): Promise<void> {
 }
 
 export enum MoySkladProductAttributes {
-    IS_AVAILABLE = '8eeaa47a-86b1-11f0-0a80-14bc00992b60',
+    IS_AVAILABLE = 'f4fbe8f9-8cdf-11f0-0a80-064700013c5a',
     PAGES_COUNT = 'Pages Count',
     WEIGHT = 'Weight',
     COVER_TYPE = 'Cover Type',
@@ -47,3 +47,16 @@ export const COVER_TYPE_MAP: Record<string, CoverType> = {
     HARDCOVER: CoverType.HARDCOVER,
     DIGITAL: CoverType.DIGITAL,
 };
+
+export const DEFAULT_MOYSKLAD_BASE_URL = 'https://api.moysklad.ru/api/remap/1.2/';
+export const MINIATURE_HOSTNAME = 'miniature-prod.moysklad.ru';
+
+export const MOYSKLAD_HOSTNAME = (() => {
+    try {
+        return new URL(process.env.MOYSKLAD_BASE_URL || DEFAULT_MOYSKLAD_BASE_URL)
+            .hostname.toLowerCase();
+    } catch {
+        return 'api.moysklad.ru';
+    }
+})();
+
