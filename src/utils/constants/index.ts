@@ -29,7 +29,7 @@ export function sleep(ms: number): Promise<void> {
 }
 
 export enum MoySkladProductAttributes {
-    IS_AVAILABLE = '8eeaa47a-86b1-11f0-0a80-14bc00992b60',
+    IS_AVAILABLE = 'f4fbe8f9-8cdf-11f0-0a80-064700013c5a',
     PAGES_COUNT = 'Pages Count',
     WEIGHT = 'Weight',
     COVER_TYPE = 'Cover Type',
@@ -47,3 +47,10 @@ export const COVER_TYPE_MAP: Record<string, CoverType> = {
     HARDCOVER: CoverType.HARDCOVER,
     DIGITAL: CoverType.DIGITAL,
 };
+
+export const UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const ALLOWED_MINIATURE_HOSTNAMES = new Set<string>([
+    'miniature-prod.moysklad.ru',
+]);
