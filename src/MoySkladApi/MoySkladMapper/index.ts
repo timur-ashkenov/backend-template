@@ -1,13 +1,13 @@
+import { MoySkladProductDataService } from '../MoySkladServices/ProductDataService';
+import { TMarketProduct, IMoySkladRowWithImages } from '../MoySkladTypes';
 import { toNumberOrNull } from '../../utils/numbers';
-import { MarketProduct, MoySkladRowWithImages } from '../MoySkladTypes';
-import { MoySkladMediaService } from '../MoySkladServices/MediaService';
 
-const mediaService = new MoySkladMediaService({
+const mediaService = new MoySkladProductDataService({
     allowMiniatureProxy: false,
 });
 
 export class MoySkladMapper {
-    public static getMarketProduct(row: any): MarketProduct {
+    public static getMarketProduct(row: any): TMarketProduct {
         const id = String(row?.id ?? '');
 
         const name = String(row?.name ?? '');
@@ -24,7 +24,7 @@ export class MoySkladMapper {
 
         const reserve = toNumberOrNull(row?.reserve);
 
-        const imageUrls = mediaService.extractImageUrls(row as MoySkladRowWithImages);
+        const imageUrls = mediaService.extractImageUrls(row as IMoySkladRowWithImages);
 
         const archived = Boolean(row?.archived);
         
@@ -41,6 +41,6 @@ export class MoySkladMapper {
             reserve,
             imageUrls,
             archived,
-        } as MarketProduct;
+        } as TMarketProduct;
     }
 }

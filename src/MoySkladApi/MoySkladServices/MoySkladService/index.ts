@@ -3,12 +3,12 @@ import type { IProduct } from '../../../domains/client';
 import { MoySkladClient } from '../../MoySkladClient';
 import { TypeGuardsService } from '../../MoySkladGuards';
 import {
-    ListParams,
-    HttpHeaders,
-    RateInfo,
+    IListParams,
+    THttpHeaders,
+    TRateInfo,
     asRelativePath,
-    AssortmentRawResult,
-    EnrichJob
+    IAssortmentRawResult,
+    TEnrichJob
 } from '../../MoySkladTypes';
 
 export class MoySkladService {
@@ -27,7 +27,7 @@ export class MoySkladService {
     private calculateNextOffset(
         responseMeta: any,
         rows: any[],
-        params: ListParams
+        params: IListParams
     ): number | undefined {
         if (TypeGuardsService.isAssortmentMeta(responseMeta)) {
             const { offset, limit, size } = responseMeta;
@@ -45,7 +45,7 @@ export class MoySkladService {
         return undefined;
     }
 
-    private extractRate(headers: HttpHeaders): {
+    private extractRate(headers: THttpHeaders): {
         limit: number;
         remaining: number;
         retryAfter: number;
@@ -92,7 +92,7 @@ export class MoySkladService {
         return { limit, remaining, retryAfter };
     }
 
-    public async listAssortmentRaw(params: ListParams): Promise<AssortmentRawResult> {
+    public async listAssortmentRaw(params: IListParams): Promise<IAssortmentRawResult> {
         const { rows, responseMeta, headers } =
             await this.fetchAssortment(params);
 
@@ -106,10 +106,10 @@ export class MoySkladService {
         return { rows, nextOffset, rate };
     }
 
-    public async listMarketProducts(params: ListParams): Promise<{
+    public async listMarketProducts(params: IListParams): Promise<{
         items: IProduct[];
         nextOffset?: number;
-        rate: RateInfo;
+        rate: TRateInfo;
     }> {
         const requestLimit = params.limit ?? 50;
         const limit = Math.min(100, requestLimit);
@@ -172,10 +172,10 @@ export class MoySkladService {
     }
 
 
-    private async fetchAssortment(params: ListParams): Promise<{
+    private async fetchAssortment(params: IListParams): Promise<{
         rows: any[];
         responseMeta: any;
-        headers: HttpHeaders;
+        headers: THttpHeaders;
     }> {
         const requestLimit = params.limit ?? 50;
 
@@ -211,7 +211,7 @@ export class MoySkladService {
     }
 
     private async enrichRowsWithImages(rows: any[]): Promise<void> {
-        const jobs: EnrichJob[] = [];
+        const jobs: TEnrichJob[] = [];
 
         for (const row of rows) {
             const hasSelf = this.hasExpandedImages(row);

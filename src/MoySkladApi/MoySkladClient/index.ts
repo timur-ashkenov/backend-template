@@ -9,24 +9,24 @@ import {
     HttpError,
 } from '../MoySkladErrors';
 import {
-    ClientConfig,
-    HttpHeaders,
-    HttpResponse,
-    RelativePath,
+    IClientConfig,
+    THttpHeaders,
+    IHttpResponse,
+    TRelativePath,
     HttpStatus,
-    HttpMethod,
+    THttpMethod,
 } from '../MoySkladTypes';
 
 export class MoySkladClient {
-    private readonly config: ClientConfig;
+    private readonly config: IClientConfig;
 
-    constructor(config: ClientConfig) {
+    constructor(config: IClientConfig) {
         this.config = config;
     }
 
     private buildUrl(
         baseURL: string,
-        path: RelativePath,
+        path: TRelativePath,
         params?: Record<string, any>
     ): string {
         const querySet = HTTPService.buildQuery(params);
@@ -72,7 +72,7 @@ export class MoySkladClient {
         throw new HttpError(status, message);
     }
 
-    private buildAuthHeader(): HttpHeaders {
+    private buildAuthHeader(): THttpHeaders {
         const { token, basic } = this.config;
 
         if (token && token.trim().length > 0) {
@@ -94,7 +94,7 @@ export class MoySkladClient {
         throw new AuthError('Missing credentials', HttpStatus.UNAUTHORIZED);
     }
 
-    private buildDefaultHeaders(): HttpHeaders {
+    private buildDefaultHeaders(): THttpHeaders {
         return {
             'accept-encoding': 'gzip',
             accept: 'application/json;charset=utf-8',
@@ -104,10 +104,10 @@ export class MoySkladClient {
 
     private async attemptOnce<T>(
         url: string,
-        method: HttpMethod,
-        headers: HttpHeaders,
+        method: THttpMethod,
+        headers: THttpHeaders,
         timeoutMs: number
-    ): Promise<HttpResponse<T>> {
+    ): Promise<IHttpResponse<T>> {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -136,11 +136,11 @@ export class MoySkladClient {
     }
 
     public async sendHttpRequestAndReturnJson<T>(
-        method: HttpMethod,
-        path: RelativePath,
+        method: THttpMethod,
+        path: TRelativePath,
         params?: Record<string, any>,
-        headers?: HttpHeaders
-    ): Promise<HttpResponse<T>> {
+        headers?: THttpHeaders
+    ): Promise<IHttpResponse<T>> {
         const mergedHeaders = {
             ...this.buildDefaultHeaders(),
             ...(headers ?? {}),
@@ -155,11 +155,11 @@ export class MoySkladClient {
     }
 
     private async sendWithRetry<T>(
-        method: HttpMethod,
-        path: RelativePath,
+        method: THttpMethod,
+        path: TRelativePath,
         params?: Record<string, any>,
-        headers?: HttpHeaders
-    ): Promise<HttpResponse<T>> {
+        headers?: THttpHeaders
+    ): Promise<IHttpResponse<T>> {
         const base = (this.config.baseURL || '').replace(/\/+$/, '');
 
         const url = this.buildUrl(base, path, params);

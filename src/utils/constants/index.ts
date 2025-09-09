@@ -60,3 +60,8 @@ export const MOYSKLAD_HOSTNAME = (() => {
     }
 })();
 
+export const DEFAULT_MOYSKLAD_HOSTNAME = 'api.moysklad.ru';
+
+export const RE_DOWNLOAD = /\/download\/[0-9a-f-]{36}$/i;
+export const RE_ENTITY_IMAGE = /\/entity\/image\/[0-9a-f-]{36}$/i;
+

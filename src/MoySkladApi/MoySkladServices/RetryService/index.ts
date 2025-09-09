@@ -1,7 +1,7 @@
-import { HttpHeaders, HttpStatus } from '../../MoySkladTypes';
+import { THttpHeaders, HttpStatus } from '../../MoySkladTypes';
 
 export class RetryService {
-    static parseRetryDelayMs(headers: HttpHeaders): number | null {
+    static parseRetryDelayMs(headers: THttpHeaders): number | null {
         const timeinterval = headers['x-lognex-retry-timeinterval'];
 
         if (timeinterval) {
@@ -47,7 +47,7 @@ export class RetryService {
 
     static computeBackoffMs(
         status: number,
-        headers: HttpHeaders,
+        headers: THttpHeaders,
         attempt: number
     ): number {
         const fromHeaders = this.parseRetryDelayMs(headers);

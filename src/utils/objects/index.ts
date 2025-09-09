@@ -1,7 +1,7 @@
-import { HttpHeaders } from '../../MoySkladApi/MoySkladTypes';
+import { THttpHeaders } from '../../MoySkladApi/MoySkladTypes';
 
-export function getObjectInLowercase(raw: any): HttpHeaders {
-  const out: HttpHeaders = {};
+export function getObjectInLowercase(raw: any): THttpHeaders {
+  const out: THttpHeaders = {};
 
   if (raw && typeof raw === 'object') {
     for (const [key, value] of Object.entries(raw)) {
