@@ -1,5 +1,3 @@
-import path from 'path';
-
 export interface IClientConfig {
     baseURL: string;
     token?: string;

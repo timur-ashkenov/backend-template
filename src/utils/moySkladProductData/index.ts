@@ -1,12 +1,13 @@
 import { MINIATURE_HOSTNAME, RE_DOWNLOAD, RE_ENTITY_IMAGE } from '../constants';
-import { toNormalizedNonEmptyString } from '../strings';
 import { TMoySkladImageLike } from '../../MoySkladApi/MoySkladTypes';
+import { toNormalizedNonEmptyString } from '../strings';
 
 export const resolveProxyUrl = (
     absoluteUrl: string,
     moyskladHostname: string
 ): string | null => {
     let parsedUrl: URL;
+
     try {
         parsedUrl = new URL(absoluteUrl);
     } catch {
@@ -15,20 +16,21 @@ export const resolveProxyUrl = (
 
     const hostname = parsedUrl.hostname.toLowerCase();
 
+    if (hostname !== MINIATURE_HOSTNAME && hostname !== moyskladHostname) {
+        return null;
+    }
+
     if (hostname === MINIATURE_HOSTNAME) {
         return `/external?url=${encodeURIComponent(absoluteUrl)}`;
     }
 
-    if (hostname === moyskladHostname) {
-        if (
-            RE_DOWNLOAD.test(parsedUrl.pathname) ||
-            RE_ENTITY_IMAGE.test(parsedUrl.pathname)
-        ) {
-            return `/image-by-url?href=${encodeURIComponent(absoluteUrl)}`;
-        }
-    }
+    const path = parsedUrl.pathname;
 
-    return null;
+    const isAllowed = RE_DOWNLOAD.test(path) || RE_ENTITY_IMAGE.test(path);
+
+    if (!isAllowed) return null;
+
+    return `/image-by-url?href=${encodeURIComponent(absoluteUrl)}`;
 };
 
 export const pickAbsoluteImageUrl = (
@@ -57,6 +59,7 @@ export const pickAbsoluteImageUrl = (
         image.href;
 
     const normalizedHref = toNormalizedNonEmptyString(fromHref);
+
     if (normalizedHref) return normalizedHref;
 
     const fallbacks =

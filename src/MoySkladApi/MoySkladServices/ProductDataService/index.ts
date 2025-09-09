@@ -4,14 +4,14 @@ import {
     pickAbsoluteImageUrl,
 } from '../../../utils/moySkladProductData';
 import {
-    toUniqueStringList,
-    toNormalizedNonEmptyString,
-} from '../../../utils/strings';
-import {
     BARCODE_KEYS,
     DEFAULT_MOYSKLAD_BASE_URL,
     DEFAULT_MOYSKLAD_HOSTNAME,
 } from '../../../utils/constants';
+import {
+    toUniqueStringList,
+    toNormalizedNonEmptyString,
+} from '../../../utils/strings';
 import {
     IMoySkladRowWithImages,
     TMoySkladImageLike,
@@ -47,11 +47,14 @@ export class MoySkladProductDataService {
             if (!barcode) continue;
 
             let pushedFromKnownKey = false;
+            
             for (const key of BARCODE_KEYS) {
                 const value = barcode[key];
                 if (value != null && value !== '') {
                     const normalized = toNormalizedNonEmptyString(value);
+
                     if (normalized) collected.push(normalized);
+
                     pushedFromKnownKey = true;
                 }
             }
@@ -62,6 +65,7 @@ export class MoySkladProductDataService {
                 barcode.value !== ''
             ) {
                 const normalized = toNormalizedNonEmptyString(barcode.value);
+
                 if (normalized) collected.push(normalized);
             }
         }
@@ -82,6 +86,7 @@ export class MoySkladProductDataService {
         const rawValue = row.salePrices?.[0]?.value;
 
         const numericValue = Number(rawValue);
+
         if (!Number.isFinite(numericValue) || numericValue <= 0) return null;
 
         return Math.round(numericValue) / 100;
@@ -89,11 +94,14 @@ export class MoySkladProductDataService {
 
     public extractImageUrls(row: IMoySkladRowWithImages): string[] {
         const selfRows = row?.images?.rows ?? [];
+
         const parentRows = row?.product?.images?.rows ?? [];
+
         const singleRefs: TMoySkladImageLike[] = [
             row?.image,
             row?.product?.image,
         ].filter(Boolean) as TMoySkladImageLike[];
+
         const candidates: TMoySkladImageLike[] = [
             ...selfRows,
             ...parentRows,
@@ -103,6 +111,7 @@ export class MoySkladProductDataService {
         const proxiedUrls: string[] = [];
         for (const candidate of candidates) {
             const absoluteUrl = pickAbsoluteImageUrl(candidate);
+
             if (!absoluteUrl) continue;
 
             const proxyUrl = resolveProxyUrl(
@@ -125,6 +134,7 @@ export class MoySkladProductDataService {
             const preferred = hasNonMiniature
                 ? proxiedUrls.filter((url) => !url.startsWith('/external?'))
                 : proxiedUrls;
+
             return toUniqueStringList(preferred);
         }
 
