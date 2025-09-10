@@ -18,6 +18,7 @@ export async function resolveMoySkladImageDownloadUrlById(
     if (response.status !== 200 || !response.data) return null;
 
     const data = response.data;
+    
     return (
         data?.sizes?.big?.downloadHref ||
         data?.sizes?.medium?.downloadHref ||
@@ -39,12 +40,11 @@ export async function streamUpstreamImageToClient(
         validateStatus: () => true,
     });
 
-    if (upstream.status >= 400) {
-        res.status(upstream.status).send(
-            upstream.statusText || 'Upstream error'
-        );
+    if (upstream.status < 400) {
         return;
     }
+
+    res.status(upstream.status).send(upstream.statusText || 'Upstream error');
 
     let contentType = String(
         upstream.headers['content-type'] || ''
@@ -53,22 +53,26 @@ export async function streamUpstreamImageToClient(
 
     res.setHeader('Content-Type', contentType);
 
-    if (upstream.headers['content-length']) {
-        res.setHeader(
-            'Content-Length',
-            String(upstream.headers['content-length'])
-        );
+    if (!upstream.headers['content-length']) {
+        return;
     }
-    if (upstream.headers.etag) {
-        res.setHeader('ETag', String(upstream.headers.etag));
+
+    res.setHeader('Content-Length', String(upstream.headers['content-length']));
+
+    if (!upstream.headers.etag) {
+        return;
     }
-    if (upstream.headers['last-modified']) {
-        res.setHeader(
-            'Last-Modified',
-            String(upstream.headers['last-modified'])
-        );
+
+    res.setHeader('ETag', String(upstream.headers.etag));
+
+    if (!upstream.headers['last-modified']) {
+        return;
     }
+
+    res.setHeader('Last-Modified', String(upstream.headers['last-modified']));
+
     res.setHeader('Content-Disposition', 'inline');
+
     res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
 
     upstream.data.pipe(res);

@@ -1,15 +1,15 @@
-import type { Request, Response } from 'express';
 import axios from 'axios';
-import { MoySkladUrl } from '../MoySkladApi/MoySkladUrl';
+import type { Request, Response } from 'express';
 import { MoySkladAuth } from '../MoySkladApi/MoySkladAuth';
-import {
-    ALLOWED_MINIATURE_HOSTNAMES,
-    UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN,
-} from '../utils/constants';
+import { MoySkladUrl } from '../MoySkladApi/MoySkladUrl';
 import {
     resolveMoySkladImageDownloadUrlById,
     streamUpstreamImageToClient,
 } from '../MoySkladApi/MoySkladServices/ImageProxyService';
+import {
+    ALLOWED_MINIATURE_HOSTNAMES,
+    UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN,
+} from '../utils/constants';
 
 export class MoySkladImageController {
     public static async proxyImageByHref(
@@ -35,6 +35,7 @@ export class MoySkladImageController {
         }
 
         const moySkladHost = MoySkladUrl.getHostname();
+
         if (hrefUrl.hostname.toLowerCase() !== moySkladHost) {
             response.status(400).send('Host not allowed');
             return;
@@ -64,8 +65,11 @@ export class MoySkladImageController {
         const withDebug = request.query.debug === '1';
 
         let finalUrl: string | null = null;
+
         let headStatus: number | null = null;
+
         let metaStatus: number | null = null;
+
         let metaAttempted = false;
 
         try {
@@ -82,30 +86,34 @@ export class MoySkladImageController {
                     headers: MoySkladAuth.buildHeaders(),
                     validateStatus: () => true,
                 });
+
                 headStatus = head.status;
+
                 if (head.status === 200) finalUrl = rawHref;
             }
 
             if (!finalUrl && isDownloadValid) {
                 metaAttempted = true;
+
                 finalUrl = await resolveMoySkladImageDownloadUrlById(
                     downloadId!
                 );
+                
                 metaStatus = finalUrl ? 200 : 404;
             }
 
-            if (withDebug) {
-                response.json({
-                    ok: !!finalUrl,
-                    hrefIn: rawHref,
-                    finalUrl,
-                    headStatus,
-                    metaAttempted,
-                    metaStatus,
-                });
-
+            if (!withDebug) {
                 return;
             }
+
+            response.json({
+                ok: !!finalUrl,
+                hrefIn: rawHref,
+                finalUrl,
+                headStatus,
+                metaAttempted,
+                metaStatus,
+            });
 
             if (!finalUrl) {
                 response.status(404).send('Image not found');

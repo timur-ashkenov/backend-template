@@ -1,15 +1,12 @@
-import { Router } from 'express';
 import type { Db } from 'mongodb';
-
-import { asyncHandler } from '../../middlewares/asyncHandler';
-
-import { UgcRepo } from '../../data/UGCRepo';
-import { MoySkladClient } from '../../MoySkladApi/MoySkladClient';
-import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
-
-import { ProductFeedService } from '../../services/ProductFeedService';
 import { MoySkladMarketController } from '../../controllers/moySkladMarketController';
+import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
 import { MoySkladImageController } from '../../controllers/moySkladImageController';
+import { ProductFeedService } from '../../services/ProductFeedService';
+import { MoySkladClient } from '../../MoySkladApi/MoySkladClient';
+import { asyncHandler } from '../../middlewares/asyncHandler';
+import { UgcRepo } from '../../data/UGCRepo';
+import { Router } from 'express';
 
 export function buildMoySkladMarketRouter(db: Db): Router {
     const router = Router();
