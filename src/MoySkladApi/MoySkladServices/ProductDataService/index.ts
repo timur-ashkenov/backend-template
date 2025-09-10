@@ -47,13 +47,15 @@ export class MoySkladProductDataService {
             if (!barcode) continue;
 
             let pushedFromKnownKey = false;
-            
+
             for (const key of BARCODE_KEYS) {
                 const value = barcode[key];
                 if (value != null && value !== '') {
                     const normalized = toNormalizedNonEmptyString(value);
 
-                    if (normalized) collected.push(normalized);
+                    if (!normalized) return [];
+
+                    collected.push(normalized);
 
                     pushedFromKnownKey = true;
                 }
@@ -66,7 +68,9 @@ export class MoySkladProductDataService {
             ) {
                 const normalized = toNormalizedNonEmptyString(barcode.value);
 
-                if (normalized) collected.push(normalized);
+                if (!normalized) return [];
+
+                collected.push(normalized);
             }
         }
 
@@ -75,7 +79,9 @@ export class MoySkladProductDataService {
             if (value != null && value !== '') {
                 const normalized = toNormalizedNonEmptyString(value);
 
-                if (normalized) collected.push(normalized);
+                if (!normalized) return [];
+                
+                collected.push(normalized);
             }
         }
 

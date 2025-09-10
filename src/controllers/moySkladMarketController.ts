@@ -1,6 +1,7 @@
+import type { IListParams } from '../MoySkladApi/MoySkladTypes';
 import { ProductFeedService } from '../services/ProductFeedService';
 import { Request, Response } from 'express';
-import type { IListParams } from '../MoySkladApi/MoySkladTypes';
+
 
 const parseNumberOrUndefined = (value: unknown): number | undefined => {
     if (value === undefined) return undefined;

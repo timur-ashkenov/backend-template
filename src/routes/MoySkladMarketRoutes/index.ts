@@ -1,13 +1,12 @@
-import { Router } from 'express';
-import type { Db } from 'mongodb';
 import axios from 'axios';
-import { asyncHandler } from '../../middlewares/asyncHandler';
-
-import { UgcRepo } from '../../data/UGCRepo';
+import type { Db } from 'mongodb';
+import { MoySkladMarketController } from '../../controllers/moySkladMarketController';
+import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
 import { ProductFeedService } from '../../services/ProductFeedService';
 import { MoySkladClient } from '../../MoySkladApi/MoySkladClient';
-import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
-import { MoySkladMarketController } from '../../controllers/moySkladMarketController';
+import { asyncHandler } from '../../middlewares/asyncHandler';
+import { UgcRepo } from '../../data/UGCRepo';
+import { Router } from 'express';
 
 const UUID_PATTERN =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
