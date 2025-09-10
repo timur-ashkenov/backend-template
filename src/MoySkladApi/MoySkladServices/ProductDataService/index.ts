@@ -80,7 +80,7 @@ export class MoySkladProductDataService {
                 const normalized = toNormalizedNonEmptyString(value);
 
                 if (!normalized) return [];
-                
+
                 collected.push(normalized);
             }
         }
@@ -115,6 +115,7 @@ export class MoySkladProductDataService {
         ];
 
         const proxiedUrls: string[] = [];
+        
         for (const candidate of candidates) {
             const absoluteUrl = pickAbsoluteImageUrl(candidate);
 

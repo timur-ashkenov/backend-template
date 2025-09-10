@@ -10,10 +10,12 @@ export const toUniqueStringList = (values: string[]): string[] => {
     const result: string[] = [];
 
     for (const value of values) {
-        if (!seen.has(value)) {
-            seen.add(value);
-            result.push(value);
-        }
+        if (seen.has(value)) continue;
+
+        seen.add(value);
+        
+        result.push(value);
     }
+
     return result;
 };
