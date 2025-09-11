@@ -17,8 +17,10 @@ export class MoySkladImageController {
         response: Response
     ): Promise<void> {
         const rawHref = String(request.query.href || '');
+
         if (!rawHref) {
             response.status(400).send('href required');
+            
             return;
         }
 
@@ -29,8 +31,10 @@ export class MoySkladImageController {
                 return null;
             }
         })();
+
         if (!hrefUrl) {
             response.status(400).send('Bad href');
+
             return;
         }
 
@@ -38,6 +42,7 @@ export class MoySkladImageController {
 
         if (hrefUrl.hostname.toLowerCase() !== moySkladHost) {
             response.status(400).send('Host not allowed');
+
             return;
         }
 
@@ -45,6 +50,7 @@ export class MoySkladImageController {
             hrefUrl.pathname
                 .match(/\/download\/([0-9a-f-]{36})$/i)?.[1]
                 ?.toLowerCase() ?? null;
+
         const entityId =
             hrefUrl.pathname
                 .match(/\/entity\/image\/([0-9a-f-]{36})$/i)?.[1]
@@ -53,12 +59,14 @@ export class MoySkladImageController {
         const isEntityValid = !!(
             entityId && UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN.test(entityId)
         );
+
         const isDownloadValid = !!(
             downloadId && UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN.test(downloadId)
         );
 
         if (!isEntityValid && !isDownloadValid) {
             response.status(400).send('Unsupported href path');
+
             return;
         }
 
@@ -73,13 +81,15 @@ export class MoySkladImageController {
         let metaAttempted = false;
 
         try {
-            if (isEntityValid) {
-                metaAttempted = true;
-
-                finalUrl = await resolveMoySkladImageDownloadUrlById(entityId!);
-
-                metaStatus = finalUrl ? 200 : 404;
+            if (!isEntityValid) {
+                return;
             }
+
+            metaAttempted = true;
+
+            finalUrl = await resolveMoySkladImageDownloadUrlById(entityId!);
+
+            metaStatus = finalUrl ? 200 : 404;
 
             if (!finalUrl && isDownloadValid) {
                 const head = await axios.head(rawHref, {
@@ -98,7 +108,7 @@ export class MoySkladImageController {
                 finalUrl = await resolveMoySkladImageDownloadUrlById(
                     downloadId!
                 );
-                
+
                 metaStatus = finalUrl ? 200 : 404;
             }
 
@@ -134,8 +144,10 @@ export class MoySkladImageController {
         response: Response
     ): Promise<void> {
         const rawUrl = String(request.query.url || '');
+
         if (!rawUrl) {
             response.status(400).send('url required');
+
             return;
         }
 
@@ -146,13 +158,16 @@ export class MoySkladImageController {
                 return null;
             }
         })();
+
         if (!parsed) {
             response.status(400).send('Bad url');
+
             return;
         }
 
         if (!ALLOWED_MINIATURE_HOSTNAMES.has(parsed.hostname)) {
             response.status(400).send('Host not allowed');
+
             return;
         }
 

@@ -32,7 +32,7 @@ export async function resolveMoySkladImageDownloadUrlById(
 
 export async function streamUpstreamImageToClient(
     upstreamUrl: string,
-    res: Response
+    response: Response
 ): Promise<void> {
     const upstream = await axios.get(upstreamUrl, {
         headers: { ...MoySkladAuth.buildHeaders(), Accept: '*/*' },
@@ -44,36 +44,37 @@ export async function streamUpstreamImageToClient(
         return;
     }
 
-    res.status(upstream.status).send(upstream.statusText || 'Upstream error');
+    response.status(upstream.status).send(upstream.statusText || 'Upstream error');
 
     let contentType = String(
         upstream.headers['content-type'] || ''
     ).toLowerCase();
+
     if (!contentType.startsWith('image/')) contentType = 'image/jpeg';
 
-    res.setHeader('Content-Type', contentType);
+    response.setHeader('Content-Type', contentType);
 
     if (!upstream.headers['content-length']) {
         return;
     }
 
-    res.setHeader('Content-Length', String(upstream.headers['content-length']));
+    response.setHeader('Content-Length', String(upstream.headers['content-length']));
 
     if (!upstream.headers.etag) {
         return;
     }
 
-    res.setHeader('ETag', String(upstream.headers.etag));
+    response.setHeader('ETag', String(upstream.headers.etag));
 
     if (!upstream.headers['last-modified']) {
         return;
     }
 
-    res.setHeader('Last-Modified', String(upstream.headers['last-modified']));
+    response.setHeader('Last-Modified', String(upstream.headers['last-modified']));
 
-    res.setHeader('Content-Disposition', 'inline');
+    response.setHeader('Content-Disposition', 'inline');
 
-    res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+    response.setHeader('Cache-Control', 'public, max-age=86400, immutable');
 
-    upstream.data.pipe(res);
+    upstream.data.pipe(response);
 }

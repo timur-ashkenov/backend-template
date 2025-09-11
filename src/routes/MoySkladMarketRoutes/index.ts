@@ -8,10 +8,10 @@ import { asyncHandler } from '../../middlewares/asyncHandler';
 import { UgcRepo } from '../../data/UGCRepo';
 import { Router } from 'express';
 
-export function buildMoySkladMarketRouter(db: Db): Router {
+export function buildMoySkladMarketRouter(database: Db): Router {
     const router = Router();
 
-    const ugcRepository = new UgcRepo(db);
+    const ugcRepository = new UgcRepo(database);
 
     const moySkladClient = new MoySkladClient({
         baseURL: process.env.MOYSKLAD_BASE_URL!,
@@ -30,6 +30,7 @@ export function buildMoySkladMarketRouter(db: Db): Router {
         moySkladService,
         ugcRepository
     );
+
     const marketController = new MoySkladMarketController(productFeedService);
 
     router.get(
