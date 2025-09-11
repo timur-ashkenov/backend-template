@@ -12,6 +12,7 @@ export class ProductFeedService {
     private clamp(numeric: number, min: number, max: number) {
         return Math.min(max, Math.max(min, numeric));
     }
+    
     private toIso(date: Date | string) {
         return date instanceof Date
             ? date.toISOString()

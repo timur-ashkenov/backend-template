@@ -76,6 +76,7 @@ export class MoySkladProductDataService {
 
         for (const key of BARCODE_KEYS) {
             const value = row?.[key];
+
             if (value != null && value !== '') {
                 const normalized = toNormalizedNonEmptyString(value);
 
@@ -125,6 +126,7 @@ export class MoySkladProductDataService {
                 absoluteUrl,
                 this.moyskladHostname
             );
+            
             if (!proxyUrl) continue;
 
             if (!this.allowMiniatureProxy && proxyUrl.startsWith('/external?'))

@@ -42,10 +42,15 @@ export class MoySkladMarketController {
     ): Promise<void> => {
     
         const limit = parseNumberOrUndefined(request.query.limit);
+
         const offset = parseNumberOrUndefined(request.query.offset);
+
         const includeImages = parseBooleanOrUndefined(request.query.includeImages);
+
         const onlyActive = parseBooleanOrUndefined(request.query.onlyActive);
+
         const reviewsLimit = parseNumberOrUndefined(request.query.reviewsLimit);
+
         const search = getStringOrUndefined(request.query.search);
 
         if (limit !== undefined && (!Number.isInteger(limit) || limit < 1)) {
@@ -70,7 +75,9 @@ export class MoySkladMarketController {
         }
 
         const effectiveLimit = limit ?? 50;
+
         const effectiveOffset = offset ?? 0;
+
         const effectiveIncludeImages = includeImages ?? true;
 
         const params: IListParams & { reviewsLimit?: number } = {
@@ -83,6 +90,7 @@ export class MoySkladMarketController {
         };
 
         const data = await this.productFeed.listProductsWithUgc(params);
+        
         response.json(data);
     };
 }

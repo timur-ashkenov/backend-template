@@ -83,6 +83,7 @@ export class MoySkladClient {
                     : `Bearer ${tokenBearer}`,
             };
         }
+
         if (basic?.user && basic?.pass) {
             const raw = `${basic.user}:${basic.pass}`;
 
@@ -109,6 +110,7 @@ export class MoySkladClient {
         timeoutMs: number
     ): Promise<IHttpResponse<T>> {
         const controller = new AbortController();
+        
         const timer = setTimeout(() => controller.abort(), timeoutMs);
 
         try {
