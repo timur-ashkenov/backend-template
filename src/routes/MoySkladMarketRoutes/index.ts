@@ -1,14 +1,12 @@
-import { Router } from 'express';
-import type { Db } from 'mongodb';
 import axios from 'axios';
-import { asyncHandler } from '../../middlewares/asyncHandler';
-
-import { UgcRepo } from '../../data/UGCRepo';
-import { UgcMetaRepo } from '../../data/UGCMetaRepo';
+import type { Db } from 'mongodb';
+import { MoySkladMarketController } from '../../controllers/moySkladMarketController';
+import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
 import { ProductFeedService } from '../../services/ProductFeedService';
 import { MoySkladClient } from '../../MoySkladApi/MoySkladClient';
-import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
-import { MoySkladMarketController } from '../../controllers/moySkladMarketController';
+import { asyncHandler } from '../../middlewares/asyncHandler';
+import { UgcRepo } from '../../data/UGCRepo';
+import { Router } from 'express';
 
 const UUID_PATTERN =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -17,12 +15,15 @@ function buildMoySkladAuthHeaders(): Record<string, string> {
     if (process.env.MOYSKLAD_TOKEN) {
         return { Authorization: `Bearer ${process.env.MOYSKLAD_TOKEN}` };
     }
+
     if (process.env.MS_USER && process.env.MS_PASS) {
         const basic = Buffer.from(
             `${process.env.MS_USER}:${process.env.MS_PASS}`
         ).toString('base64');
+
         return { Authorization: `Basic ${basic}` };
     }
+
     return {};
 }
 
@@ -30,6 +31,7 @@ function buildMoySkladUrl(path: string): string {
     const base = (
         process.env.MOYSKLAD_BASE_URL || 'https://api.moysklad.ru/api/remap/1.2'
     ).replace(/\/+$/, '');
+
     return `${base}/${path.replace(/^\/+/, '')}`;
 }
 
@@ -71,12 +73,14 @@ async function streamImageResponse(
         response.status(upstream.status).send(
             upstream.statusText || 'Upstream error'
         );
+
         return;
     }
 
     let contentType = String(
         upstream.headers['content-type'] || ''
     ).toLowerCase();
+
     if (!contentType.startsWith('image/')) contentType = 'image/jpeg';
 
     response.setHeader('Content-Type', contentType);
@@ -86,15 +90,18 @@ async function streamImageResponse(
             String(upstream.headers['content-length'])
         );
     }
+
     if (upstream.headers.etag) {
         response.setHeader('ETag', String(upstream.headers.etag));
     }
+
     if (upstream.headers['last-modified']) {
         response.setHeader(
             'Last-Modified',
             String(upstream.headers['last-modified'])
         );
     }
+
     response.setHeader('Content-Disposition', 'inline');
 
     response.setHeader('Cache-Control', 'public, max-age=86400, immutable');
@@ -106,8 +113,6 @@ export function buildMoySkladMarketRouter(db: Db): Router {
     const router = Router();
 
     const ugcRepo = new UgcRepo(db);
-
-    const ugcMetaRepo = new UgcMetaRepo(db);
 
     const moySkladClient = new MoySkladClient({
         baseURL: process.env.MOYSKLAD_BASE_URL!,
@@ -121,11 +126,12 @@ export function buildMoySkladMarketRouter(db: Db): Router {
     });
 
     const moySkladService = new MoySkladService(moySkladClient);
+
     const feedService = new ProductFeedService(
         moySkladService,
-        ugcRepo,
-        ugcMetaRepo
+        ugcRepo
     );
+
     const controller = new MoySkladMarketController(feedService);
 
     router.get(
@@ -197,7 +203,9 @@ export function buildMoySkladMarketRouter(db: Db): Router {
                         finalUrl = rawHref;
                     } else {
                         metaTried = true;
+
                         finalUrl = await resolveDownloadHrefById(downloadId);
+
                         metaStatus = finalUrl ? 200 : 404;
                     }
                 } else {
@@ -231,9 +239,11 @@ export function buildMoySkladMarketRouter(db: Db): Router {
         '/external',
         asyncHandler(async (request, response) => {
             const rawUrl = String(request.query.url || '');
+
             if (!rawUrl) return response.status(400).send('url required');
 
             let parsed: URL;
+
             try {
                 parsed = new URL(rawUrl);
             } catch {
@@ -241,6 +251,7 @@ export function buildMoySkladMarketRouter(db: Db): Router {
             }
 
             const allowedHosts = new Set(['miniature-prod.moysklad.ru']);
+            
             if (!allowedHosts.has(parsed.hostname)) {
                 return response.status(400).send('Host not allowed');
             }
@@ -259,6 +270,7 @@ export function buildMoySkladMarketRouter(db: Db): Router {
             let contentType = String(
                 upstream.headers['content-type'] || ''
             ).toLowerCase();
+
             if (!contentType.startsWith('image/')) contentType = 'image/jpeg';
 
             response.setHeader('Content-Type', contentType);
@@ -269,6 +281,7 @@ export function buildMoySkladMarketRouter(db: Db): Router {
                     String(upstream.headers['content-length'])
                 );
             }
+            
             response.setHeader('Content-Disposition', 'inline');
 
             response.setHeader('Cache-Control', 'public, max-age=86400, immutable');
