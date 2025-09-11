@@ -40,7 +40,6 @@ export class MoySkladMarketController {
         request: Request,
         response: Response
     ): Promise<void> => {
-    
         const limit = parseNumberOrUndefined(request.query.limit);
 
         const offset = parseNumberOrUndefined(request.query.offset);
@@ -58,11 +57,13 @@ export class MoySkladMarketController {
 
             return;
         }
+
         if (offset !== undefined && (!Number.isInteger(offset) || offset < 0)) {
             response.status(400).json({ error: 'offset must be an integer ≥ 0' });
 
             return;
         }
+        
         if (
             reviewsLimit !== undefined &&
             (!Number.isInteger(reviewsLimit) || reviewsLimit < 1)
@@ -90,7 +91,7 @@ export class MoySkladMarketController {
         };
 
         const data = await this.productFeed.listProductsWithUgc(params);
-        
+
         response.json(data);
     };
 }

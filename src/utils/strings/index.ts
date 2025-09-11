@@ -1,4 +1,4 @@
-export const toNormalizedNonEmptyString = (value: unknown): string | null => {
+export const toNormalizedNonEmptyString = (value: string | undefined): string | null => {
     const normalized = String(value ?? '').trim();
 
     return normalized.length > 0 ? normalized : null;
