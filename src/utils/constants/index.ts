@@ -54,3 +54,10 @@ export const UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN =
 export const ALLOWED_MINIATURE_HOSTNAMES = new Set<string>([
     'miniature-prod.moysklad.ru',
 ]);
+
+export const DEFAULT_LIMIT = 50;
+
+export const DEFAULT_OFFSET = 0;
+
+export const DEFAULT_INCLUDE_IMAGES = true;
+
