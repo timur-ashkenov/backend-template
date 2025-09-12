@@ -67,3 +67,10 @@ export const RE_DOWNLOAD = /\/download\/[0-9a-f-]{36}$/i;
 
 export const RE_ENTITY_IMAGE = /\/entity\/image\/[0-9a-f-]{36}$/i;
 
+export const HTTP_STATUS_NO_CONTENT = 204;
+export const HTTP_STATUS_NOT_MODIFIED = 304;
+export const HEADER_CONTENT_TYPE = 'content-type';
+export const MIME_APPLICATION_JSON = 'application/json';
+export const REGEX_TRAILING_SLASHES = /\/+$/;
+export const EMPTY_STATUS_TEXT = '';
+
