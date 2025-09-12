@@ -48,14 +48,16 @@ export const COVER_TYPE_MAP: Record<string, CoverType> = {
     DIGITAL: CoverType.DIGITAL,
 };
 
-export const DEFAULT_MOYSKLAD_BASE_URL = 'https://api.moysklad.ru/api/remap/1.2/';
+export const DEFAULT_MOYSKLAD_BASE_URL =
+    'https://api.moysklad.ru/api/remap/1.2/';
 
 export const MINIATURE_HOSTNAME = 'miniature-prod.moysklad.ru';
 
 export const MOYSKLAD_HOSTNAME = (() => {
     try {
-        return new URL(process.env.MOYSKLAD_BASE_URL || DEFAULT_MOYSKLAD_BASE_URL)
-            .hostname.toLowerCase();
+        return new URL(
+            process.env.MOYSKLAD_BASE_URL || DEFAULT_MOYSKLAD_BASE_URL
+        ).hostname.toLowerCase();
     } catch {
         return 'api.moysklad.ru';
     }
@@ -67,3 +69,12 @@ export const RE_DOWNLOAD = /\/download\/[0-9a-f-]{36}$/i;
 
 export const RE_ENTITY_IMAGE = /\/entity\/image\/[0-9a-f-]{36}$/i;
 
+export const PRODUCT_RATING_MIN = 1;
+
+export const PRODUCT_RATING_MAX = 4;
+
+export const DEFAULT_REVIEWS_LIMIT = 3;
+
+export const DEFAULT_NUMERIC_VALUE = 0;
+
+export const ANONYMOUS_AUTHOR_FALLBACK = 'Аноним';
