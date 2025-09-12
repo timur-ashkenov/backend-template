@@ -5,19 +5,14 @@ import {
     collectAbortSignals,
 } from '../../../utils/httpUtils';
 import {
-  HTTP_STATUS_NO_CONTENT,
-  HTTP_STATUS_NOT_MODIFIED,
-  HEADER_CONTENT_TYPE,
-  MIME_APPLICATION_JSON,
-  REGEX_TRAILING_SLASHES,
-  EMPTY_STATUS_TEXT,
+    HTTP_STATUS_NO_CONTENT,
+    HTTP_STATUS_NOT_MODIFIED,
+    HEADER_CONTENT_TYPE,
+    MIME_APPLICATION_JSON,
+    REGEX_TRAILING_SLASHES,
+    EMPTY_STATUS_TEXT,
 } from '../../../utils/constants';
-import {
-    THttpHeaders,
-    TRequestArgs,
-    IHttpResponse,
-} from '../../MoySkladTypes';
-
+import { THttpHeaders, TRequestArgs, IHttpResponse } from '../../MoySkladTypes';
 
 export class HttpService {
     static toLowercaseHeaders<T extends Record<string, unknown>>(
@@ -67,11 +62,15 @@ export class HttpService {
 
         const normalizedHeaders = HttpService.toLowercaseHeaders(rawHeaders);
 
-        const contentType = normalizedHeaders[HEADER_CONTENT_TYPE] || EMPTY_STATUS_TEXT;
+        const contentType =
+            normalizedHeaders[HEADER_CONTENT_TYPE] || EMPTY_STATUS_TEXT;
 
         let data: unknown = null;
 
-        if (response.status === HTTP_STATUS_NO_CONTENT || response.status === HTTP_STATUS_NOT_MODIFIED) {
+        if (
+            response.status === HTTP_STATUS_NO_CONTENT ||
+            response.status === HTTP_STATUS_NOT_MODIFIED
+        ) {
             return {
                 status: response.status,
                 statusText: response.statusText || EMPTY_STATUS_TEXT,
@@ -116,6 +115,7 @@ export class HttpService {
 
             for (const item of value) {
                 if (item == null) continue;
+
                 parts.push(
                     `${encodeURIComponent(key)}=${encodeURIComponent(String(item))}`
                 );
@@ -130,15 +130,18 @@ export class HttpService {
         path: string,
         params?: Record<string, unknown>
     ): string {
-        const normalizedBase = (base || EMPTY_STATUS_TEXT).replace(REGEX_TRAILING_SLASHES, EMPTY_STATUS_TEXT);
+        const normalizedBase = (base || EMPTY_STATUS_TEXT).replace(
+            REGEX_TRAILING_SLASHES,
+            EMPTY_STATUS_TEXT
+        );
 
         const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
         const queryString = HttpService.buildQuery(params);
 
-        return queryString
-            ? `${normalizedBase}${normalizedPath}?${queryString}`
-            : `${normalizedBase}${normalizedPath}`;
+        if (!queryString) return `${normalizedBase}${normalizedPath}`;
+
+        return `${normalizedBase}${normalizedPath}?${queryString}`;
     }
 
     static pickErrorMessage(data: any, statusText?: string): string {
