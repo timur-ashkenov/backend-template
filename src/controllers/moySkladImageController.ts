@@ -1,11 +1,11 @@
 import axios from 'axios';
 import type { Request, Response } from 'express';
 import { MoySkladAuth } from '../MoySkladApi/MoySkladAuth';
-import { MoySkladUrl } from '../MoySkladApi/MoySkladUrl';
 import {
     resolveMoySkladImageDownloadUrlById,
     streamUpstreamImageToClient,
 } from '../MoySkladApi/MoySkladServices/ImageProxyService';
+import { MoySkladUrl } from '../MoySkladApi/MoySkladUrl';
 import {
     ALLOWED_MINIATURE_HOSTNAMES,
     UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN,
@@ -20,7 +20,7 @@ export class MoySkladImageController {
 
         if (!rawHref) {
             response.status(400).send('href required');
-            
+
             return;
         }
 
@@ -93,7 +93,7 @@ export class MoySkladImageController {
 
             if (!finalUrl && isDownloadValid) {
                 const head = await axios.head(rawHref, {
-                    headers: MoySkladAuth.buildHeaders(),
+                    headers: MoySkladAuth.buildAuthorizationHeaders(),
                     validateStatus: () => true,
                 });
 

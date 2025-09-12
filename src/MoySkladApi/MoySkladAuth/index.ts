@@ -1,17 +1,23 @@
 export class MoySkladAuth {
-    public static buildHeaders(): Record<string, string> {
-        if (process.env.MOYSKLAD_TOKEN) {
-            return { Authorization: `Bearer ${process.env.MOYSKLAD_TOKEN}` };
+    public static buildAuthorizationHeaders(): Record<string, string> {
+        const bearerToken = process.env.MOYSKLAD_TOKEN;
+
+        if (bearerToken) {
+            return { Authorization: `Bearer ${bearerToken}` };
         }
 
-        if (!(process.env.MS_USER && process.env.MS_PASS)) {
+        const username = process.env.MS_USER;
+
+        const password = process.env.MS_PASS;
+
+        if (!username || !password) {
             return {};
         }
 
-        const basic = Buffer.from(
-            `${process.env.MS_USER}:${process.env.MS_PASS}`
-        ).toString('base64');
+        const basicCredentialsBase64 = Buffer
+            .from(`${username}:${password}`)
+            .toString('base64');
 
-        return { Authorization: `Basic ${basic}` };
+        return { Authorization: `Basic ${basicCredentialsBase64}` };
     }
 }

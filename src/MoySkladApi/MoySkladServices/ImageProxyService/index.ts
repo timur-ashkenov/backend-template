@@ -6,12 +6,16 @@ import { MoySkladUrl } from '../../MoySkladUrl';
 export async function resolveMoySkladImageDownloadUrlById(
     imageId: string
 ): Promise<string | null> {
+    if (!imageId?.trim()) {
+        return null;
+    }
+
     const metadataUrl = MoySkladUrl.buildAbsoluteUrl(
         `entity/image/${encodeURIComponent(imageId)}`
     );
 
     const response = await axios.get(metadataUrl, {
-        headers: { ...MoySkladAuth.buildHeaders(), Accept: 'application/json' },
+        headers: { ...MoySkladAuth.buildAuthorizationHeaders(), Accept: 'application/json' },
         validateStatus: () => true,
     });
 
@@ -35,7 +39,7 @@ export async function streamUpstreamImageToClient(
     response: Response
 ): Promise<void> {
     const upstream = await axios.get(upstreamUrl, {
-        headers: { ...MoySkladAuth.buildHeaders(), Accept: '*/*' },
+        headers: { ...MoySkladAuth.buildAuthorizationHeaders(), Accept: '*/*' },
         responseType: 'stream',
         validateStatus: () => true,
     });
