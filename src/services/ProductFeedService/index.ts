@@ -1,7 +1,7 @@
-import type { IReviewOut, IProductStatsOut } from '../../types/UGCTypes';
-import type { IListParams } from '../../MoySkladApi/MoySkladTypes';
 import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
+import type { IReviewOut, IProductStatsOut } from '../../types/UGCTypes';
 import { convertDateToIsoString } from '../../utils/dateTimeAndMath';
+import type { IListParams } from '../../MoySkladApi/MoySkladTypes';
 import { restrictNumberToRange } from '../../utils/numbers';
 import { UgcRepo } from '../../data/UGCRepo';
 import {

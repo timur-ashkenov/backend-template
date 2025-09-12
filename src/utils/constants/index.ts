@@ -4,9 +4,7 @@ export const EMAIL_BASE_STRUCTURE = /^(?=.{1,254}$)[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const CODE_BASE_STRUCTURE = /^\d{6}$/;
 
 export const ALG = 'sha256';
-
 export const CODE_LENGTH = 6;
-
 export const OTP_CODE_MIN_DIGIT = 0;
 export const OTP_CODE_MAX_DIGIT = 10;
 export const OTP_SALT_LENGTH = 16;

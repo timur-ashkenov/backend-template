@@ -1,3 +1,5 @@
+import { DEFAULT_NUMERIC_VALUE } from '../../utils/constants';
+import { mapReviewDocToOut } from '../../utils/reviewMapper';
 import type { Db, Collection } from 'mongodb';
 import type {
     IReviewDoc,
@@ -5,8 +7,6 @@ import type {
     IReviewOut,
     IProductStatsOut,
 } from '../../types/UGCTypes';
-import { DEFAULT_NUMERIC_VALUE } from '../../utils/constants';
-import { mapReviewDocToOut } from '../../utils/reviewMapper';
 
 export class UgcRepo {
     private readonly productStats: Collection<IProductStatsDoc>;
