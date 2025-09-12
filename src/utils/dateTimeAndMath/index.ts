@@ -1,11 +1,3 @@
-export function restrictNumberToRange(
-    numeric: number,
-    min: number,
-    max: number
-) {
-    return Math.min(max, Math.max(min, numeric));
-}
-
 export function convertDateToIsoString(date: Date | string) {
     return date instanceof Date
         ? date.toISOString()

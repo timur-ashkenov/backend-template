@@ -1,17 +1,15 @@
 import type { IReviewOut, IProductStatsOut } from '../../types/UGCTypes';
 import type { IListParams } from '../../MoySkladApi/MoySkladTypes';
 import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
+import { convertDateToIsoString } from '../../utils/dateTimeAndMath';
+import { restrictNumberToRange } from '../../utils/numbers';
 import { UgcRepo } from '../../data/UGCRepo';
-import {
-    restrictNumberToRange,
-    convertDateToIsoString,
-} from '../../utils/dateTimeAndMath';
 import {
     PRODUCT_RATING_MAX,
     PRODUCT_RATING_MIN,
     DEFAULT_REVIEWS_LIMIT,
     DEFAULT_NUMERIC_VALUE,
-    ANONYMOUS_AUTHOR_FALLBACK
+    ANONYMOUS_AUTHOR_FALLBACK,
 } from '../../utils/constants';
 
 export class ProductFeedService {
@@ -48,7 +46,8 @@ export class ProductFeedService {
 
             const reviews = raws.map(
                 (rows): (typeof products.reviews)[number] => ({
-                    author: rows.author || rows.userId || ANONYMOUS_AUTHOR_FALLBACK,
+                    author:
+                        rows.author || rows.userId || ANONYMOUS_AUTHOR_FALLBACK,
                     title: rows.title,
                     text: rows.text,
                     rating: restrictNumberToRange(

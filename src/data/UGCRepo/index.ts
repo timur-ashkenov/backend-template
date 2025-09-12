@@ -5,20 +5,11 @@ import type {
     IReviewOut,
     IProductStatsOut,
 } from '../../types/UGCTypes';
-import {
-    restrictNumberToRange,
-    normalizeDate,
-} from '../../utils/dateTimeAndMath';
-import {
-    DEFAULT_NUMERIC_VALUE,
-    ANONYMOUS_AUTHOR_FALLBACK,
-    PRODUCT_RATING_MIN,
-    PRODUCT_RATING_MAX,
-} from '../../utils/constants';
+import { DEFAULT_NUMERIC_VALUE } from '../../utils/constants';
+import { mapReviewDocToOut } from '../../utils/reviewMapper';
 
 export class UgcRepo {
     private readonly productStats: Collection<IProductStatsDoc>;
-
     private readonly reviews: Collection<IReviewDoc>;
 
     constructor(database: Db) {
@@ -114,28 +105,7 @@ export class UgcRepo {
         const map = new Map<string, IReviewOut[]>();
 
         for (const row of rows) {
-            const list: IReviewOut[] = row.reviews.map((doc) => ({
-                id: String(doc._id),
-                productId: doc.productId,
-                userId: doc.userId,
-                author: doc.author ?? doc.userId ?? ANONYMOUS_AUTHOR_FALLBACK,
-                title: doc.title,
-                text: doc.text ?? '',
-                rating: restrictNumberToRange(
-                    typeof doc.rating === 'number' &&
-                        Number.isFinite(doc.rating)
-                        ? doc.rating
-                        : PRODUCT_RATING_MIN,
-                    PRODUCT_RATING_MIN,
-                    PRODUCT_RATING_MAX
-                ) as IReviewOut['rating'],
-                createdAt: normalizeDate(doc.createdAt),
-                likesCount:
-                    typeof doc.likesCount === 'number' ? doc.likesCount : 0,
-                dislikeCount:
-                    typeof doc.dislikeCount === 'number' ? doc.dislikeCount : 0,
-            }));
-
+            const list = row.reviews.map(mapReviewDocToOut);
             map.set(row.productId, list);
         }
         return map;
