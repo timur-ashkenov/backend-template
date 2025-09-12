@@ -10,6 +10,7 @@ import {
     ALLOWED_MINIATURE_HOSTNAMES,
     UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN,
 } from '../utils/constants';
+import { safeParseUrl } from '../utils/urls';
 
 export class MoySkladImageController {
     public static async proxyImageByHref(
@@ -24,13 +25,7 @@ export class MoySkladImageController {
             return;
         }
 
-        const hrefUrl = (() => {
-            try {
-                return new URL(rawHref);
-            } catch {
-                return null;
-            }
-        })();
+        const hrefUrl = safeParseUrl(rawHref);
 
         if (!hrefUrl) {
             response.status(400).send('Bad href');
@@ -50,7 +45,6 @@ export class MoySkladImageController {
             hrefUrl.pathname
                 .match(/\/download\/([0-9a-f-]{36})$/i)?.[1]
                 ?.toLowerCase() ?? null;
-
         const entityId =
             hrefUrl.pathname
                 .match(/\/entity\/image\/([0-9a-f-]{36})$/i)?.[1]
@@ -59,7 +53,6 @@ export class MoySkladImageController {
         const isEntityValid = !!(
             entityId && UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN.test(entityId)
         );
-
         const isDownloadValid = !!(
             downloadId && UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN.test(downloadId)
         );
@@ -73,11 +66,8 @@ export class MoySkladImageController {
         const withDebug = request.query.debug === '1';
 
         let finalUrl: string | null = null;
-
         let headStatus: number | null = null;
-
         let metaStatus: number | null = null;
-
         let metaAttempted = false;
 
         try {
@@ -151,13 +141,7 @@ export class MoySkladImageController {
             return;
         }
 
-        const parsed = (() => {
-            try {
-                return new URL(rawUrl);
-            } catch {
-                return null;
-            }
-        })();
+        const parsed = safeParseUrl(rawUrl);
 
         if (!parsed) {
             response.status(400).send('Bad url');

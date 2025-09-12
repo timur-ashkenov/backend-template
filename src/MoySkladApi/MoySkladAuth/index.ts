@@ -7,7 +7,6 @@ export class MoySkladAuth {
         }
 
         const username = process.env.MS_USER;
-
         const password = process.env.MS_PASS;
 
         if (!username || !password) {

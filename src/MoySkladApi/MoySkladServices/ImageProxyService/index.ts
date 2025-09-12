@@ -15,14 +15,17 @@ export async function resolveMoySkladImageDownloadUrlById(
     );
 
     const response = await axios.get(metadataUrl, {
-        headers: { ...MoySkladAuth.buildAuthorizationHeaders(), Accept: 'application/json' },
+        headers: {
+            ...MoySkladAuth.buildAuthorizationHeaders(),
+            Accept: 'application/json',
+        },
         validateStatus: () => true,
     });
 
     if (response.status !== 200 || !response.data) return null;
 
     const data = response.data;
-    
+
     return (
         data?.sizes?.big?.downloadHref ||
         data?.sizes?.medium?.downloadHref ||
@@ -48,7 +51,9 @@ export async function streamUpstreamImageToClient(
         return;
     }
 
-    response.status(upstream.status).send(upstream.statusText || 'Upstream error');
+    response
+        .status(upstream.status)
+        .send(upstream.statusText || 'Upstream error');
 
     let contentType = String(
         upstream.headers['content-type'] || ''
@@ -62,7 +67,10 @@ export async function streamUpstreamImageToClient(
         return;
     }
 
-    response.setHeader('Content-Length', String(upstream.headers['content-length']));
+    response.setHeader(
+        'Content-Length',
+        String(upstream.headers['content-length'])
+    );
 
     if (!upstream.headers.etag) {
         return;
@@ -74,10 +82,11 @@ export async function streamUpstreamImageToClient(
         return;
     }
 
-    response.setHeader('Last-Modified', String(upstream.headers['last-modified']));
-
+    response.setHeader(
+        'Last-Modified',
+        String(upstream.headers['last-modified'])
+    );
     response.setHeader('Content-Disposition', 'inline');
-
     response.setHeader('Cache-Control', 'public, max-age=86400, immutable');
 
     upstream.data.pipe(response);

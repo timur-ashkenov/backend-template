@@ -56,8 +56,6 @@ export const ALLOWED_MINIATURE_HOSTNAMES = new Set<string>([
 ]);
 
 export const DEFAULT_LIMIT = 50;
-
 export const DEFAULT_OFFSET = 0;
-
 export const DEFAULT_INCLUDE_IMAGES = true;
 
