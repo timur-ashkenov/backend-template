@@ -1,8 +1,3 @@
-import type {
-    THttpHeaders,
-    TRequestArgs,
-    IHttpResponse,
-} from '../../MoySkladTypes';
 import {
     mergeAbortSignals,
     safeJson,
@@ -17,6 +12,11 @@ import {
   REGEX_TRAILING_SLASHES,
   EMPTY_STATUS_TEXT,
 } from '../../../utils/constants';
+import {
+    THttpHeaders,
+    TRequestArgs,
+    IHttpResponse,
+} from '../../MoySkladTypes';
 
 
 export class HttpService {
