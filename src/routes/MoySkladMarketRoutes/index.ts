@@ -1,4 +1,3 @@
-import type { Db } from 'mongodb';
 import { MoySkladMarketController } from '../../controllers/moySkladMarketController';
 import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
 import { MoySkladImageController } from '../../controllers/moySkladImageController';
@@ -6,6 +5,7 @@ import { ProductFeedService } from '../../services/ProductFeedService';
 import { MoySkladClient } from '../../MoySkladApi/MoySkladClient';
 import { asyncHandler } from '../../middlewares/asyncHandler';
 import { UgcRepo } from '../../data/UGCRepo';
+import type { Db } from 'mongodb';
 import { Router } from 'express';
 
 export function buildMoySkladMarketRouter(database: Db): Router {

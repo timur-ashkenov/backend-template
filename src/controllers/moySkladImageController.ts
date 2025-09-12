@@ -1,11 +1,11 @@
 import axios from 'axios';
-import type { Request, Response } from 'express';
 import { MoySkladAuth } from '../MoySkladApi/MoySkladAuth';
 import {
     resolveMoySkladImageDownloadUrlById,
     streamUpstreamImageToClient,
 } from '../MoySkladApi/MoySkladServices/ImageProxyService';
 import { MoySkladUrl } from '../MoySkladApi/MoySkladUrl';
+import type {Request, Response } from 'express';
 import {
     ALLOWED_MINIATURE_HOSTNAMES,
     UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN,

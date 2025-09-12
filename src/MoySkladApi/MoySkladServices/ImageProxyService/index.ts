@@ -1,7 +1,7 @@
 import axios from 'axios';
-import type { Response } from 'express';
 import { MoySkladAuth } from '../../MoySkladAuth';
 import { MoySkladUrl } from '../../MoySkladUrl';
+import type { Response } from 'express';
 
 export async function resolveMoySkladImageDownloadUrlById(
     imageId: string

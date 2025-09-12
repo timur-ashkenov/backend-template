@@ -1,6 +1,6 @@
+import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
 import type { ReviewOut, ProductStatsOut } from '../../types/UGCTypes';
 import type { ListParams } from '../../MoySkladApi/MoySkladTypes';
-import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
 import { UgcRepo } from '../../data/UGCRepo';
 
 export class ProductFeedService {
