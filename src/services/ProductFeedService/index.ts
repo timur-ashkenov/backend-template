@@ -22,9 +22,7 @@ export class ProductFeedService {
         params: IListParams & { reviewsLimit?: number }
     ): Promise<Awaited<ReturnType<MoySkladService['listMarketProducts']>>> {
         const response = await this.msService.listMarketProducts(params);
-
         const baseItems = response.items;
-
         const productIds = baseItems.map((products) => products.id);
 
         await this.ugcRepo.ensureProductStats(productIds);
