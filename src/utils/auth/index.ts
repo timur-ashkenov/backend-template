@@ -1,9 +1,9 @@
+import { AuthError } from '../../MoySkladApi/MoySkladErrors';
+import { HttpStatus } from '../../MoySkladApi/MoySkladTypes';
 import type {
     THttpHeaders,
     IClientConfig,
 } from '../../MoySkladApi/MoySkladTypes';
-import { AuthError } from '../../MoySkladApi/MoySkladErrors';
-import { HttpStatus } from '../../MoySkladApi/MoySkladTypes';
 
 export function buildAuthHeader(config: IClientConfig): THttpHeaders {
     const tokenTrimmed = (config.token ?? '').trim();
