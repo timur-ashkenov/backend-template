@@ -1,6 +1,6 @@
 import { toBooleanOrUndefined, toNumberOrUndefined } from '../utils/query';
 import { ProductFeedService } from '../services/ProductFeedService';
-import { ListParams } from '../MoySkladApi/MoySkladTypes';
+import { IListParams } from '../MoySkladApi/MoySkladTypes';
 import { Request, Response } from 'express';
 import {
     DEFAULT_LIMIT,
@@ -9,10 +9,10 @@ import {
 } from '../utils/constants';
 
 export class MoySkladMarketController {
-    constructor(private readonly feed: ProductFeedService) {}
+    constructor(private readonly productFeed: ProductFeedService) {}
 
     fetchMarketProducts = async (request: Request, response: Response) => {
-        const params: ListParams & { reviewsLimit?: number } = {
+        const params: IListParams & { reviewsLimit?: number } = {
             limit: toNumberOrUndefined(request.query.limit) ?? DEFAULT_LIMIT,
             offset: toNumberOrUndefined(request.query.offset) ?? DEFAULT_OFFSET,
             search:
@@ -26,7 +26,7 @@ export class MoySkladMarketController {
             reviewsLimit: toNumberOrUndefined(request.query.reviewsLimit),
         };
 
-        const data = await this.feed.listProductsWithUgc(params);
+        const data = await this.productFeed.listProductsWithUgc(params);
 
         response.json(data);
     };

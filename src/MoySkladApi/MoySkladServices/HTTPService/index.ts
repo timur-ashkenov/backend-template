@@ -1,4 +1,4 @@
-import { HttpHeaders, RequestArgs, HttpResponse } from '../../MoySkladTypes';
+import { THttpHeaders, TRequestArgs, IHttpResponse } from '../../MoySkladTypes';
 
 export class HTTPService {
     static async requestWithJson<T = unknown>({
@@ -8,7 +8,7 @@ export class HTTPService {
         body,
         timeoutMs,
         signal,
-    }: RequestArgs): Promise<HttpResponse<T>> {
+    }: TRequestArgs): Promise<IHttpResponse<T>> {
         const controller = new AbortController();
 
         const signals: AbortSignal[] = [controller.signal];
@@ -52,7 +52,7 @@ export class HTTPService {
         return {
             status: resp.status,
             statusText: resp.statusText || '',
-            headers: normalizedHeaders as HttpHeaders,
+            headers: normalizedHeaders as THttpHeaders,
             data: data as T,
         };
     }

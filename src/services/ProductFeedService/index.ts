@@ -1,6 +1,6 @@
 import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
 import type { ReviewOut, ProductStatsOut } from '../../types/UGCTypes';
-import type { ListParams } from '../../MoySkladApi/MoySkladTypes';
+import type { IListParams } from '../../MoySkladApi/MoySkladTypes';
 import { UgcRepo } from '../../data/UGCRepo';
 
 export class ProductFeedService {
@@ -19,7 +19,7 @@ export class ProductFeedService {
     }
 
     public async listProductsWithUgc(
-        params: ListParams & { reviewsLimit?: number }
+        params: IListParams & { reviewsLimit?: number }
     ): Promise<Awaited<ReturnType<MoySkladService['listMarketProducts']>>> {
         const response = await this.msService.listMarketProducts(params);
 
