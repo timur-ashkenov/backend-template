@@ -1,9 +1,4 @@
-import {
-    mergeAbortSignals,
-    safeJson,
-    tryParseJson,
-    collectAbortSignals,
-} from '../../../utils/httpUtils';
+import { THttpHeaders, TRequestArgs, IHttpResponse } from '../../MoySkladTypes';
 import {
     HTTP_STATUS_NO_CONTENT,
     HTTP_STATUS_NOT_MODIFIED,
@@ -12,9 +7,56 @@ import {
     REGEX_TRAILING_SLASHES,
     EMPTY_STATUS_TEXT,
 } from '../../../utils/constants';
-import { THttpHeaders, TRequestArgs, IHttpResponse } from '../../MoySkladTypes';
 
 export class HttpService {
+    static mergeAbortSignals(signals: AbortSignal[]): AbortSignal {
+        if (signals.length < 1) return new AbortController().signal;
+
+        if (signals.length === 1) return signals[0];
+
+        const controller = new AbortController();
+        
+        const onAbort = () => controller.abort();
+
+        for (const signal of signals) {
+            if (signal.aborted) {
+                controller.abort();
+
+                return controller.signal;
+            }
+            signal.addEventListener('abort', onAbort, { once: true });
+        }
+
+        return controller.signal;
+    }
+
+    static collectAbortSignals(
+        primary: AbortSignal,
+        extra?: AbortSignal
+    ): AbortSignal[] {
+        if (!extra) return [primary];
+        
+        return [primary, extra];
+    }
+
+    static tryParseJson(input: string): unknown | null {
+        try {
+            return JSON.parse(input);
+        } catch {
+            return null;
+        }
+    }
+
+    static async safeJson(response: Response): Promise<unknown> {
+        try {
+            return await response.json();
+        } catch {
+            const text = await response.text().catch(() => '');
+
+            return HttpService.tryParseJson(text) ?? text ?? null;
+        }
+    }
+
     static toLowercaseHeaders<T extends Record<string, unknown>>(
         headers: T
     ): Record<string, any> {
@@ -27,7 +69,7 @@ export class HttpService {
         return lowered;
     }
 
-    static async requestWithJson<T = unknown>({
+    static async requestWithJson<T>({
         url,
         method,
         headers,
@@ -37,7 +79,7 @@ export class HttpService {
     }: TRequestArgs): Promise<IHttpResponse<T>> {
         const controller = new AbortController();
 
-        const signals = collectAbortSignals(controller.signal, signal);
+        const signals = this.collectAbortSignals(controller.signal, signal);
 
         let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
@@ -51,7 +93,7 @@ export class HttpService {
             method,
             headers: requestHeaders,
             body: body ?? null,
-            signal: mergeAbortSignals(signals),
+            signal: this.mergeAbortSignals(signals),
         }).finally(() => {
             if (!timeoutId) return;
 
@@ -80,13 +122,13 @@ export class HttpService {
         }
 
         if (contentType.includes(MIME_APPLICATION_JSON)) {
-            data = await safeJson(response);
+            data = await this.safeJson(response);
         }
 
         if (!contentType.includes(MIME_APPLICATION_JSON)) {
             const text = await response.text();
 
-            data = tryParseJson(text) ?? text ?? null;
+            data = this.tryParseJson(text) ?? text ?? null;
         }
 
         return {
@@ -150,10 +192,10 @@ export class HttpService {
         }
 
         return (
-            data?.errors?.[0]?.error ||
-            data?.errors?.[0]?.message ||
-            data?.message ||
-            data?.error ||
+            String(data?.errors?.[0]?.error) ||
+            String(data?.errors?.[0]?.message) ||
+            String(data?.message) ||
+            String(data?.error) ||
             statusText ||
             EMPTY_STATUS_TEXT
         );
