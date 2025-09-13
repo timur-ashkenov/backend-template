@@ -1,5 +1,5 @@
 import { RetryService } from '../MoySkladServices/RetryService';
-import { HTTPService } from '../MoySkladServices/HTTPService';
+import { HttpService } from '../MoySkladServices/HTTPService';
 import { getObjectInLowercase } from '../../utils/objects';
 import { buildDefaultHeaders } from '../../utils/headers';
 import { classifyAndThrow } from '../../utils/errors';
@@ -47,7 +47,7 @@ export class MoySkladClient {
                 statusText,
                 headers: respHeaders,
                 data,
-            } = await HTTPService.requestWithJson<T>({
+            } = await HttpService.requestWithJson<T>({
                 url,
                 method,
                 headers,
@@ -121,7 +121,7 @@ export class MoySkladClient {
                     return { status, headers: respHeaders, data: data as T };
                 }
 
-                const message = HTTPService.pickErrorMessage(
+                const message = HttpService.pickErrorMessage(
                     data,
                     statusText ?? ''
                 );
