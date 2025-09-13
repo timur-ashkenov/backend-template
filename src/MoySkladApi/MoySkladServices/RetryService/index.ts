@@ -1,47 +1,46 @@
 import { THttpHeaders, HttpStatus } from '../../MoySkladTypes';
+import { toNonNegativeNumber } from '../../../utils/numbers';
+import {
+    HDR_LOGNEX_RETRY_AFTER,
+    HDR_LOGNEX_TIMEINTERVAL,
+    HDR_RETRY_AFTER,
+    MS_IN_SECOND,
+    RATE_LIMIT_MAX_MS,
+    RATE_LIMIT_STEP_MS,
+    EXP_BASE_MS,
+    EXP_CAP_MS,
+    JITTER_MAX_MS,
+} from '../../../utils/constants';
 
 export class RetryService {
     static parseRetryDelayMs(headers: THttpHeaders): number | null {
-        const timeinterval = headers['x-lognex-retry-timeinterval'];
+        const fromIntervalMs = toNonNegativeNumber(
+            headers[HDR_LOGNEX_TIMEINTERVAL]
+        );
 
-        if (timeinterval) {
-            const ms = Number(timeinterval);
+        if (fromIntervalMs != null) return fromIntervalMs;
 
-            if (Number.isFinite(ms) && ms >= 0) {
-                return ms;
-            }
-        }
+        const fromLognexAfterSec = toNonNegativeNumber(
+            headers[HDR_LOGNEX_RETRY_AFTER]
+        );
+        
+        if (fromLognexAfterSec != null)
+            return fromLognexAfterSec * MS_IN_SECOND;
 
-        const lognexAfter = headers['x-lognex-retry-after'];
+        const retryAfter = headers[HDR_RETRY_AFTER];
 
-        if (lognexAfter) {
-            const sec = Number(lognexAfter);
+        if (!retryAfter) return null;
 
-            if (Number.isFinite(sec) && sec >= 0) {
-                return sec * 1000;
-            }
-        }
+        const retryAfterSec = toNonNegativeNumber(retryAfter);
 
-        const retryAfter = headers['retry-after'];
+        if (retryAfterSec != null) return retryAfterSec * MS_IN_SECOND;
 
-        if (!retryAfter) {
-            return null;
-        }
+        const when = Date.parse(String(retryAfter));
 
-        const num = Number(retryAfter);
-
-        if (Number.isFinite(num) && num >= 0) {
-            return num * 1000;
-        }
-
-        const when = Date.parse(retryAfter);
-
-        if (Number.isNaN(when)) {
-            return null;
-        }
+        if (Number.isNaN(when)) return null;
 
         const delta = when - Date.now();
-        
+
         return delta > 0 ? delta : null;
     }
 
@@ -50,21 +49,25 @@ export class RetryService {
         headers: THttpHeaders,
         attempt: number
     ): number {
-        const fromHeaders = this.parseRetryDelayMs(headers);
-
-        if (
+        const isRateLimited =
             status === HttpStatus.TOO_MANY_REQUESTS ||
-            status === HttpStatus.SERVICE_UNAVAILABLE
-        ) {
-            if (fromHeaders != null) return fromHeaders;
+            status === HttpStatus.SERVICE_UNAVAILABLE;
 
-            return Math.min(1000 * (attempt + 1), 3000);
+        if (!isRateLimited) {
+            const exponentialBackoffMs = Math.min(
+                EXP_BASE_MS * 2 ** attempt,
+                EXP_CAP_MS
+            );
+
+            const jitter = Math.floor(Math.random() * JITTER_MAX_MS);
+
+            return exponentialBackoffMs + jitter;
         }
 
-        const backoff = Math.min(150 * Math.pow(2, attempt), 1000);
+        const hinted = this.parseRetryDelayMs(headers);
 
-        const jitter = Math.floor(Math.random() * 100);
+        if (hinted != null) return hinted;
 
-        return backoff + jitter;
+        return Math.min(RATE_LIMIT_STEP_MS * (attempt + 1), RATE_LIMIT_MAX_MS);
     }
 }
