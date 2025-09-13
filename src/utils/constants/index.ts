@@ -48,10 +48,19 @@ export const COVER_TYPE_MAP: Record<string, CoverType> = {
     DIGITAL: CoverType.DIGITAL,
 };
 
+export const UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const ALLOWED_MINIATURE_HOSTNAMES = new Set<string>([
+    'miniature-prod.moysklad.ru',
+]);
+
+export const DEFAULT_LIMIT = 50;
+export const DEFAULT_OFFSET = 0;
+export const DEFAULT_INCLUDE_IMAGES = true;
 export const DEFAULT_MOYSKLAD_BASE_URL = 'https://api.moysklad.ru/api/remap/1.2/';
 
 export const MINIATURE_HOSTNAME = 'miniature-prod.moysklad.ru';
-
 export const MOYSKLAD_HOSTNAME = (() => {
     try {
         return new URL(process.env.MOYSKLAD_BASE_URL || DEFAULT_MOYSKLAD_BASE_URL)
@@ -60,11 +69,8 @@ export const MOYSKLAD_HOSTNAME = (() => {
         return 'api.moysklad.ru';
     }
 })();
-
 export const DEFAULT_MOYSKLAD_HOSTNAME = 'api.moysklad.ru';
-
 export const RE_DOWNLOAD = /\/download\/[0-9a-f-]{36}$/i;
-
 export const RE_ENTITY_IMAGE = /\/entity\/image\/[0-9a-f-]{36}$/i;
 
 export const RE_TRAILING_SLASHES = /\/+$/;
