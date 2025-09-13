@@ -126,7 +126,7 @@ export class MoySkladClient {
                     statusText ?? ''
                 );
 
-                if (!(canRetry(attempt) && isShouldRetry(status))) {
+                if (!canRetry(attempt) || !isShouldRetry(status)) {
                     const retryAfterMs =
                         RetryService.parseRetryDelayMs(respHeaders) ??
                         undefined;
@@ -137,6 +137,7 @@ export class MoySkladClient {
                 await sleep(
                     RetryService.computeBackoffMs(status, respHeaders, attempt)
                 );
+
                 continue;
             } catch (error: any) {
                 const isAbort = error?.name === ERROR_NAME_ABORT;
@@ -146,7 +147,7 @@ export class MoySkladClient {
                     error?.name === ERROR_NAME_TYPE ||
                     RE_NETWORK_MESSAGE.test(String(error?.message || ''));
 
-                if (!(canRetry(attempt) && isNetworkLike)) {
+                if (!canRetry(attempt) || !isNetworkLike) {
                     throw new ServerError(
                         STATUS_NETWORK_LIKE,
                         isAbort

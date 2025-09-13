@@ -11,7 +11,6 @@ export function buildAuthHeader(config: IClientConfig): THttpHeaders {
     const hasToken = tokenTrimmed.length > 0;
 
     const user = config.basic?.user;
-
     const pass = config.basic?.pass;
 
     const hasBasic = !!user && !!pass;
@@ -19,7 +18,6 @@ export function buildAuthHeader(config: IClientConfig): THttpHeaders {
     if (!hasToken && !hasBasic) {
         throw new AuthError('Missing credentials', HttpStatus.UNAUTHORIZED);
     }
-
     if (!hasToken) {
         const encoded = Buffer.from(`${user}:${pass}`, 'utf8').toString(
             'base64'
