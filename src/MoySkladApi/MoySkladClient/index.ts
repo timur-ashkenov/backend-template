@@ -1,13 +1,20 @@
 import { RetryService } from '../MoySkladServices/RetryService';
 import { HTTPService } from '../MoySkladServices/HTTPService';
 import { getObjectInLowercase } from '../../utils/objects';
-import { sleep } from '../../utils/constants';
+import { buildDefaultHeaders } from '../../utils/headers';
+import { classifyAndThrow } from '../../utils/errors';
+import { isShouldRetry } from '../../utils/retry';
+import { ServerError } from '../MoySkladErrors';
+import { buildUrl } from '../../utils/urls';
 import {
-    AuthError,
-    RateLimitError,
-    ServerError,
-    HttpError,
-} from '../MoySkladErrors';
+    DEFAULT_TIMEOUT_MS,
+    STATUS_NETWORK_LIKE,
+    ERROR_NAME_ABORT,
+    ERROR_NAME_TYPE,
+    RE_NETWORK_MESSAGE,
+    DEFAULT_MAX_RETRIES,
+    sleep,
+} from '../../utils/constants';
 import {
     IClientConfig,
     THttpHeaders,
@@ -24,93 +31,14 @@ export class MoySkladClient {
         this.config = config;
     }
 
-    private buildUrl(
-        baseURL: string,
-        path: TRelativePath,
-        params?: Record<string, any>
-    ): string {
-        const querySet = HTTPService.buildQuery(params);
-
-        const url = `${baseURL}/${path}`;
-
-        return querySet ? `${url}?${querySet}` : url;
-    }
-
-    private isShouldRetry(status: number): boolean {
-        if (status === HttpStatus.TOO_MANY_REQUESTS) return true;
-
-        if (
-            status >= HttpStatus.INTERNAL_SERVER_ERROR &&
-            status <= HttpStatus.NETWORK_CONNECT_TIMEOUT_ERROR
-        ) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private classifyAndThrow(
-        status: number,
-        message: string,
-        retryAfterMs?: number
-    ): never {
-        if (status === HttpStatus.UNAUTHORIZED) {
-            throw new AuthError(message, status as HttpStatus.UNAUTHORIZED);
-        }
-
-        if (status === HttpStatus.TOO_MANY_REQUESTS) {
-            throw new RateLimitError(message, retryAfterMs);
-        }
-
-        if (
-            status >= HttpStatus.INTERNAL_SERVER_ERROR &&
-            status <= HttpStatus.NETWORK_CONNECT_TIMEOUT_ERROR
-        ) {
-            throw new ServerError(status, message);
-        }
-
-        throw new HttpError(status, message);
-    }
-
-    private buildAuthHeader(): THttpHeaders {
-        const { token, basic } = this.config;
-
-        if (token && token.trim().length > 0) {
-            const tokenBearer = token.trim();
-            return {
-                authorization: tokenBearer.toLowerCase().startsWith('bearer ')
-                    ? tokenBearer
-                    : `Bearer ${tokenBearer}`,
-            };
-        }
-
-        if (basic?.user && basic?.pass) {
-            const raw = `${basic.user}:${basic.pass}`;
-
-            const encoded = Buffer.from(raw, 'utf8').toString('base64');
-
-            return { authorization: `Basic ${encoded}` };
-        }
-
-        throw new AuthError('Missing credentials', HttpStatus.UNAUTHORIZED);
-    }
-
-    private buildDefaultHeaders(): THttpHeaders {
-        return {
-            'accept-encoding': 'gzip',
-            accept: 'application/json;charset=utf-8',
-            ...this.buildAuthHeader(),
-        };
-    }
-
-    private async attemptOnce<T>(
+    public async attemptOnce<T>(
         url: string,
         method: THttpMethod,
         headers: THttpHeaders,
         timeoutMs: number
     ): Promise<IHttpResponse<T>> {
         const controller = new AbortController();
-        
+
         const timer = setTimeout(() => controller.abort(), timeoutMs);
 
         try {
@@ -144,7 +72,7 @@ export class MoySkladClient {
         headers?: THttpHeaders
     ): Promise<IHttpResponse<T>> {
         const mergedHeaders = {
-            ...this.buildDefaultHeaders(),
+            ...buildDefaultHeaders(this.config),
             ...(headers ?? {}),
         };
 
@@ -156,23 +84,23 @@ export class MoySkladClient {
         );
     }
 
-    private async sendWithRetry<T>(
+    public async sendWithRetry<T>(
         method: THttpMethod,
         path: TRelativePath,
         params?: Record<string, any>,
         headers?: THttpHeaders
     ): Promise<IHttpResponse<T>> {
-        const base = (this.config.baseURL || '').replace(/\/+$/, '');
+        const url = buildUrl(this.config.baseURL || '', path, params);
 
-        const url = this.buildUrl(base, path, params);
+        const timeoutMs = this.config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
-        const timeoutMs = this.config.timeoutMs ?? 10_000;
-
-        const maxRetries = this.config.maxRetries ?? 1;
+        const maxRetries = this.config.maxRetries ?? DEFAULT_MAX_RETRIES;
 
         const normalizedHeaders = getObjectInLowercase(headers ?? {});
 
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        const canRetry = (attempt: number) => attempt < maxRetries;
+
+        for (let attempt = 0; ; attempt++) {
             try {
                 const {
                     status,
@@ -198,45 +126,45 @@ export class MoySkladClient {
                     statusText ?? ''
                 );
 
-                if (this.isShouldRetry(status) && attempt < maxRetries) {
-                    const delay = RetryService.computeBackoffMs(
-                        status,
-                        respHeaders,
-                        attempt
-                    );
-                    await sleep(delay);
-                    continue;
+                if (!(canRetry(attempt) && isShouldRetry(status))) {
+                    const retryAfterMs =
+                        RetryService.parseRetryDelayMs(respHeaders) ??
+                        undefined;
+
+                    classifyAndThrow(status, message, retryAfterMs);
                 }
 
-                const retryAfterMs =
-                    RetryService.parseRetryDelayMs(respHeaders) ?? undefined;
-
-                this.classifyAndThrow(status, message, retryAfterMs);
+                await sleep(
+                    RetryService.computeBackoffMs(status, respHeaders, attempt)
+                );
+                continue;
             } catch (error: any) {
-                const isAbort = error?.name === 'AbortError';
+                const isAbort = error?.name === ERROR_NAME_ABORT;
 
                 const isNetworkLike =
                     isAbort ||
-                    error?.name === 'TypeError' ||
-                    /network/i.test(String(error?.message || ''));
+                    error?.name === ERROR_NAME_TYPE ||
+                    RE_NETWORK_MESSAGE.test(String(error?.message || ''));
 
-                if (isNetworkLike && attempt < maxRetries) {
-                    const delay = RetryService.computeBackoffMs(0, {}, attempt);
-
-                    await sleep(delay);
-
-                    continue;
+                if (!(canRetry(attempt) && isNetworkLike)) {
+                    throw new ServerError(
+                        STATUS_NETWORK_LIKE,
+                        isAbort
+                            ? 'Request timeout'
+                            : error?.message || 'Network error'
+                    );
                 }
 
-                throw new ServerError(
-                    0,
-                    isAbort
-                        ? 'Request timeout'
-                        : error?.message || 'Network error'
+                await sleep(
+                    RetryService.computeBackoffMs(
+                        STATUS_NETWORK_LIKE,
+                        {},
+                        attempt
+                    )
                 );
+
+                continue;
             }
         }
-
-        throw new ServerError(0, 'Unexpected retry loop exit');
     }
 }
