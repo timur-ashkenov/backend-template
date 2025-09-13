@@ -1,6 +1,6 @@
+import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
 import type { ReviewOut, ProductStatsOut } from '../../types/UGCTypes';
 import type { IListParams } from '../../MoySkladApi/MoySkladTypes';
-import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
 import { UgcRepo } from '../../data/UGCRepo';
 
 export class ProductFeedService {
@@ -12,7 +12,6 @@ export class ProductFeedService {
     private clamp(numeric: number, min: number, max: number) {
         return Math.min(max, Math.max(min, numeric));
     }
-    
     private toIso(date: Date | string) {
         return date instanceof Date
             ? date.toISOString()

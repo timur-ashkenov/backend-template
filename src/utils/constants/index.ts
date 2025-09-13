@@ -38,6 +38,16 @@ export const COVER_TYPE_MAP: Record<string, CoverType> = {
     DIGITAL: CoverType.DIGITAL,
 };
 
+export const UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const ALLOWED_MINIATURE_HOSTNAMES = new Set<string>([
+    'miniature-prod.moysklad.ru',
+]);
+
+export const DEFAULT_LIMIT = 50;
+export const DEFAULT_OFFSET = 0;
+export const DEFAULT_INCLUDE_IMAGES = true;
 export const DEFAULT_MOYSKLAD_BASE_URL = 'https://api.moysklad.ru/api/remap/1.2/';
 export const DEFAULT_MOYSKLAD_HOSTNAME = 'api.moysklad.ru';
 export const BARCODE_KEYS = ['ean13', 'gtin', 'ean8', 'code128'] as const;
