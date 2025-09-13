@@ -55,8 +55,9 @@ export const BARCODE_KEYS = ['ean13', 'gtin', 'ean8', 'code128'] as const;
 export const MINIATURE_HOSTNAME = 'miniature-prod.moysklad.ru';
 export const MOYSKLAD_HOSTNAME = (() => {
     try {
-        return new URL(process.env.MOYSKLAD_BASE_URL || DEFAULT_MOYSKLAD_BASE_URL)
-            .hostname.toLowerCase();
+        return new URL(
+            process.env.MOYSKLAD_BASE_URL || DEFAULT_MOYSKLAD_BASE_URL
+        ).hostname.toLowerCase();
     } catch {
         return 'api.moysklad.ru';
     }
@@ -73,6 +74,17 @@ export const STATUS_NETWORK_LIKE = 0;
 export const ERROR_NAME_ABORT = 'AbortError';
 export const ERROR_NAME_TYPE = 'TypeError';
 export const RE_NETWORK_MESSAGE = /network/i;
+
+export const HDR_LOGNEX_TIMEINTERVAL = 'x-lognex-retry-timeinterval';
+export const HDR_LOGNEX_RETRY_AFTER = 'x-lognex-retry-after';
+export const HDR_RETRY_AFTER = 'retry-after';
+
+export const MS_IN_SECOND = 1_000;
+export const RATE_LIMIT_STEP_MS = 1_000;
+export const RATE_LIMIT_MAX_MS = 3_000;
+export const EXP_BASE_MS = 150;
+export const EXP_CAP_MS = 1_000;
+export const JITTER_MAX_MS = 100;
 
 export const HTTP_STATUS_NO_CONTENT = 204;
 export const HTTP_STATUS_NOT_MODIFIED = 304;

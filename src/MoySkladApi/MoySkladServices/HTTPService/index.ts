@@ -1,4 +1,4 @@
-import { THttpHeaders, TRequestArgs, IHttpResponse } from '../../MoySkladTypes';
+import { buildAuthHeader } from '../../../utils/auth';
 import {
     HTTP_STATUS_NO_CONTENT,
     HTTP_STATUS_NOT_MODIFIED,
@@ -7,15 +7,29 @@ import {
     REGEX_TRAILING_SLASHES,
     EMPTY_STATUS_TEXT,
 } from '../../../utils/constants';
+import {
+    THttpHeaders,
+    TRequestArgs,
+    IHttpResponse,
+    IClientConfig,
+} from '../../MoySkladTypes';
 
 export class HttpService {
+    static buildDefaultHeaders(config: IClientConfig): THttpHeaders {
+        return {
+            'accept-encoding': 'gzip',
+            accept: 'application/json;charset=utf-8',
+            ...buildAuthHeader(config),
+        };
+    }
+
     static mergeAbortSignals(signals: AbortSignal[]): AbortSignal {
         if (signals.length < 1) return new AbortController().signal;
 
         if (signals.length === 1) return signals[0];
 
         const controller = new AbortController();
-        
+
         const onAbort = () => controller.abort();
 
         for (const signal of signals) {
@@ -35,7 +49,7 @@ export class HttpService {
         extra?: AbortSignal
     ): AbortSignal[] {
         if (!extra) return [primary];
-        
+
         return [primary, extra];
     }
 

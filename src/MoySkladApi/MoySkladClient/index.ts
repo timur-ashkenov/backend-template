@@ -1,11 +1,8 @@
 import { RetryService } from '../MoySkladServices/RetryService';
 import { HttpService } from '../MoySkladServices/HTTPService';
 import { getObjectInLowercase } from '../../utils/objects';
-import { buildDefaultHeaders } from '../../utils/headers';
 import { classifyAndThrow } from '../../utils/errors';
-import { isShouldRetry } from '../../utils/retry';
 import { ServerError } from '../MoySkladErrors';
-import { buildUrl } from '../../utils/urls';
 import {
     DEFAULT_TIMEOUT_MS,
     STATUS_NETWORK_LIKE,
@@ -72,7 +69,7 @@ export class MoySkladClient {
         headers?: THttpHeaders
     ): Promise<IHttpResponse<T>> {
         const mergedHeaders = {
-            ...buildDefaultHeaders(this.config),
+            ...HttpService.buildDefaultHeaders(this.config),
             ...(headers ?? {}),
         };
 
@@ -90,7 +87,11 @@ export class MoySkladClient {
         params?: Record<string, any>,
         headers?: THttpHeaders
     ): Promise<IHttpResponse<T>> {
-        const url = buildUrl(this.config.baseURL || '', path, params);
+        const url = HttpService.buildUrl(
+            this.config.baseURL || '',
+            path,
+            params
+        );
 
         const timeoutMs = this.config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
@@ -126,7 +127,7 @@ export class MoySkladClient {
                     statusText ?? ''
                 );
 
-                if (!canRetry(attempt) || !isShouldRetry(status)) {
+                if (!canRetry(attempt) || !RetryService.isShouldRetry(status)) {
                     const retryAfterMs =
                         RetryService.parseRetryDelayMs(respHeaders) ??
                         undefined;
