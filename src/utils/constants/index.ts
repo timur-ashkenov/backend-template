@@ -14,8 +14,6 @@ export const SMTP_MAX_SEND_ATTEMPTS = 2;
 export const SMTP_MIN_SEND_ATTEMPTS = 1;
 export const SMTP_RETRY_DELAY_MS = 300;
 
-export const BARCODE_KEYS = ['ean13', 'gtin', 'ean8', 'code128'] as const;
-
 export function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -40,11 +38,21 @@ export const COVER_TYPE_MAP: Record<string, CoverType> = {
     DIGITAL: CoverType.DIGITAL,
 };
 
-export const DEFAULT_MOYSKLAD_BASE_URL =
-    'https://api.moysklad.ru/api/remap/1.2/';
+export const UNIVERSALLY_UNIQUE_IDENTIFIER_PATTERN =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const ALLOWED_MINIATURE_HOSTNAMES = new Set<string>([
+    'miniature-prod.moysklad.ru',
+]);
+
+export const DEFAULT_LIMIT = 50;
+export const DEFAULT_OFFSET = 0;
+export const DEFAULT_INCLUDE_IMAGES = true;
+export const DEFAULT_MOYSKLAD_BASE_URL = 'https://api.moysklad.ru/api/remap/1.2/';
+export const DEFAULT_MOYSKLAD_HOSTNAME = 'api.moysklad.ru';
+export const BARCODE_KEYS = ['ean13', 'gtin', 'ean8', 'code128'] as const;
 
 export const MINIATURE_HOSTNAME = 'miniature-prod.moysklad.ru';
-
 export const MOYSKLAD_HOSTNAME = (() => {
     try {
         return new URL(
@@ -55,12 +63,37 @@ export const MOYSKLAD_HOSTNAME = (() => {
     }
 })();
 
-export const DEFAULT_MOYSKLAD_HOSTNAME = 'api.moysklad.ru';
-export const RE_DOWNLOAD = /\/download\/[0-9a-f-]{36}$/i;
-export const RE_ENTITY_IMAGE = /\/entity\/image\/[0-9a-f-]{36}$/i;
-
 export const PRODUCT_RATING_MIN = 1;
 export const PRODUCT_RATING_MAX = 4;
 export const DEFAULT_REVIEWS_LIMIT = 3;
 export const DEFAULT_NUMERIC_VALUE = 0;
 export const ANONYMOUS_AUTHOR_FALLBACK = 'Аноним';
+export const RE_DOWNLOAD = /\/download\/[0-9a-f-]{36}$/i;
+export const RE_ENTITY_IMAGE = /\/entity\/image\/[0-9a-f-]{36}$/i;
+export const RE_TRAILING_SLASHES = /\/+$/;
+
+export const DEFAULT_TIMEOUT_MS = 10_000;
+export const DEFAULT_MAX_RETRIES = 1;
+export const STATUS_NETWORK_LIKE = 0;
+export const ERROR_NAME_ABORT = 'AbortError';
+export const ERROR_NAME_TYPE = 'TypeError';
+export const RE_NETWORK_MESSAGE = /network/i;
+
+export const HDR_LOGNEX_TIMEINTERVAL = 'x-lognex-retry-timeinterval';
+export const HDR_LOGNEX_RETRY_AFTER = 'x-lognex-retry-after';
+export const HDR_RETRY_AFTER = 'retry-after';
+
+export const MS_IN_SECOND = 1_000;
+export const RATE_LIMIT_STEP_MS = 1_000;
+export const RATE_LIMIT_MAX_MS = 3_000;
+export const EXP_BASE_MS = 150;
+export const EXP_CAP_MS = 1_000;
+export const JITTER_MAX_MS = 100;
+
+export const HTTP_STATUS_NO_CONTENT = 204;
+export const HTTP_STATUS_NOT_MODIFIED = 304;
+export const HEADER_CONTENT_TYPE = 'content-type';
+export const MIME_APPLICATION_JSON = 'application/json';
+export const REGEX_TRAILING_SLASHES = /\/+$/;
+export const EMPTY_STATUS_TEXT = '';
+

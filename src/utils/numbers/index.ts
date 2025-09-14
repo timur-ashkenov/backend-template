@@ -11,3 +11,9 @@ export function restrictNumberToRange(
 ): number {
   return Math.min(max, Math.max(min, numeric));
 }
+
+export const toNonNegativeNumber = (value: unknown): number | null => {
+    const numeric = Number(value);
+
+    return Number.isFinite(numeric) && numeric >= 0 ? numeric : null;
+};
