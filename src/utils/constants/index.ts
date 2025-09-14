@@ -66,9 +66,19 @@ export const MOYSKLAD_HOSTNAME = (() => {
 export const RE_DOWNLOAD = /\/download\/[0-9a-f-]{36}$/i;
 export const RE_ENTITY_IMAGE = /\/entity\/image\/[0-9a-f-]{36}$/i;
 
+export const RE_TRAILING_SLASHES = /\/+$/;
+
+export const DEFAULT_TIMEOUT_MS = 10_000;
+export const DEFAULT_MAX_RETRIES = 1;
+export const STATUS_NETWORK_LIKE = 0;
+export const ERROR_NAME_ABORT = 'AbortError';
+export const ERROR_NAME_TYPE = 'TypeError';
+export const RE_NETWORK_MESSAGE = /network/i;
+
 export const HDR_LOGNEX_TIMEINTERVAL = 'x-lognex-retry-timeinterval';
 export const HDR_LOGNEX_RETRY_AFTER = 'x-lognex-retry-after';
 export const HDR_RETRY_AFTER = 'retry-after';
+
 export const MS_IN_SECOND = 1_000;
 export const RATE_LIMIT_STEP_MS = 1_000;
 export const RATE_LIMIT_MAX_MS = 3_000;

@@ -13,6 +13,15 @@ import {
 } from '../../../utils/constants';
 
 export class RetryService {
+    public static isShouldRetry(status: number): boolean {
+        if (status === HttpStatus.TOO_MANY_REQUESTS) return true;
+
+        return (
+            status >= HttpStatus.INTERNAL_SERVER_ERROR &&
+            status <= HttpStatus.NETWORK_CONNECT_TIMEOUT_ERROR
+        );
+    }
+
     static parseRetryDelayMs(headers: THttpHeaders): number | null {
         const fromIntervalMs = toNonNegativeNumber(
             headers[HDR_LOGNEX_TIMEINTERVAL]
@@ -23,7 +32,7 @@ export class RetryService {
         const fromLognexAfterSec = toNonNegativeNumber(
             headers[HDR_LOGNEX_RETRY_AFTER]
         );
-        
+
         if (fromLognexAfterSec != null)
             return fromLognexAfterSec * MS_IN_SECOND;
 
