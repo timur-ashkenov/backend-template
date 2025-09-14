@@ -63,9 +63,13 @@ export const MOYSKLAD_HOSTNAME = (() => {
     }
 })();
 
+export const PRODUCT_RATING_MIN = 1;
+export const PRODUCT_RATING_MAX = 4;
+export const DEFAULT_REVIEWS_LIMIT = 3;
+export const DEFAULT_NUMERIC_VALUE = 0;
+export const ANONYMOUS_AUTHOR_FALLBACK = 'Аноним';
 export const RE_DOWNLOAD = /\/download\/[0-9a-f-]{36}$/i;
 export const RE_ENTITY_IMAGE = /\/entity\/image\/[0-9a-f-]{36}$/i;
-
 export const RE_TRAILING_SLASHES = /\/+$/;
 
 export const DEFAULT_TIMEOUT_MS = 10_000;
