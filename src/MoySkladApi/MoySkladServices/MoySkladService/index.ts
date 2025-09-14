@@ -1,5 +1,6 @@
 import MoySkladDecoder from '../../../services/MoySkladDecoder';
 import { calculateNextOffset } from '../../../utils/assortment';
+import { buildAssortmentQuery } from '../../../utils/query';
 import { TypeGuardsService } from '../../MoySkladGuards';
 import { extractUuidFromHref } from '../../../utils/ids';
 import type { IProduct } from '../../../domains/client';
@@ -17,33 +18,26 @@ import {
     asRelativePath,
     IAssortmentRawResult,
     TEnrichJob,
+    IFetchAssortmentResult,
+    IMarketProductsResult,
 } from '../../MoySkladTypes';
 
 export class MoySkladService {
     constructor(private readonly client: MoySkladClient) {}
 
-    public async fetchAssortment(params: IListParams): Promise<{
-        rows: any[];
-        responseMeta: any;
-        headers: THttpHeaders;
-    }> {
-        const requestLimit = params.limit ?? 50;
-        const effectiveLimit = params.includeImages
-            ? Math.min(100, requestLimit)
-            : requestLimit;
-        const offset = params.offset ?? 0;
-        const queryParams: Record<string, any> = {
-            limit: effectiveLimit,
-            offset,
-        };
+    public getNextEnrichTask(
+        tasks: TEnrichJob[],
+        indexRef: { value: number }
+    ): TEnrichJob | undefined {
+        if (indexRef.value >= tasks.length) return undefined;
 
-        if (params.search) queryParams.search = params.search;
+        return tasks[indexRef.value++];
+    }
 
-        queryParams.expand = params.includeImages
-            ? 'images,product'
-            : 'product';
-
-        if (params.onlyActive !== false) queryParams.filter = 'archived=false';
+    public async fetchAssortment(
+        params: IListParams
+    ): Promise<IFetchAssortmentResult> {
+        const queryParams = buildAssortmentQuery(params);
 
         const response = await this.client.sendHttpRequestAndReturnJson<any>(
             'GET',
@@ -59,7 +53,9 @@ export class MoySkladService {
     }
 
     public async enrichRowsWithImages(rows: any[]): Promise<void> {
-        const jobs: TEnrichJob[] = [];
+        const imageEnrichTasks: TEnrichJob[] = [];
+
+        if (!imageEnrichTasks.length) return;
 
         for (const row of rows) {
             const selfHasImages = hasExpandedImages(row);
@@ -71,7 +67,7 @@ export class MoySkladService {
                 | undefined;
 
             if (!selfHasImages && selfCollectionHref) {
-                jobs.push({
+                imageEnrichTasks.push({
                     kind: 'self-collection',
                     row,
                     collectionHref: selfCollectionHref,
@@ -92,100 +88,113 @@ export class MoySkladService {
                 !parentHasImages &&
                 productId
             ) {
-                jobs.push({ kind: 'parent-product', row, productId });
+                imageEnrichTasks.push({
+                    kind: 'parent-product',
+                    row,
+                    productId,
+                });
             }
         }
 
-        if (!jobs.length) return;
+        const concurrency = Math.min(8, imageEnrichTasks.length);
 
-        const concurrency = Math.min(8, jobs.length);
-
-        let nextIndex = 0;
-
-        const getNextJob = (): TEnrichJob | undefined =>
-            nextIndex < jobs.length ? jobs[nextIndex++] : undefined;
+        let taskIndex = { value: 0 };
 
         const worker = async () => {
             for (;;) {
-                const job = getNextJob();
-                if (!job) return;
+                const task = this.getNextEnrichTask(
+                    imageEnrichTasks,
+                    taskIndex
+                );
 
-                try {
-                    if (job.kind === 'self-collection') {
-                        await applySelfCollectionImages(this.client, job);
-                        continue;
-                    }
-                    await applyParentProductImages(this.client, job);
-                } catch {}
+                if (!task) return;
+
+                if (task.kind === 'self-collection') {
+                    await applySelfCollectionImages(this.client, task);
+                    continue;
+                }
+
+                await applyParentProductImages(this.client, task);
             }
         };
 
         await Promise.all(Array.from({ length: concurrency }, worker));
     }
 
-    public async listAssortmentRaw(
+    public async getListAssortmentRaw(
         params: IListParams
     ): Promise<IAssortmentRawResult> {
-        const { rows, responseMeta, headers } =
-            await this.fetchAssortment(params);
+        try {
+            const { rows, responseMeta, headers } =
+                await this.fetchAssortment(params);
 
-        if (params.includeImages && rows.length) {
-            const needsEnrich = rows.some((row) => !hasExpandedImages(row));
+            if (
+                params.includeImages &&
+                rows.length &&
+                rows.some((rows) => !hasExpandedImages(rows))
+            ) {
+                await this.enrichRowsWithImages(rows);
+            }
 
-            if (needsEnrich) await this.enrichRowsWithImages(rows);
+            const nextOffset = calculateNextOffset(responseMeta, rows, params);
+            const rate = extractRate(headers);
+
+            return { rows, nextOffset, rate };
+        } catch (err: any) {
+            throw new Error(
+                `getListAssortmentRaw failed: ${err?.message ?? String(err)}`
+            );
         }
-
-        const nextOffset = calculateNextOffset(responseMeta, rows, params);
-        const rate = extractRate(headers);
-
-        return { rows, nextOffset, rate };
     }
 
-    public async listMarketProducts(params: IListParams): Promise<{
-        items: IProduct[];
-        nextOffset?: number;
-        rate: TRateInfo;
-    }> {
-        const requestLimit = params.limit ?? 50;
-        const limit = Math.min(100, requestLimit);
-        const offset = params.offset ?? 0;
-        const query: Record<string, any> = { limit, offset };
+    public async getListMarketProducts(
+        params: IListParams
+    ): Promise<IMarketProductsResult> {
+        try {
+            const queryParams = buildAssortmentQuery({
+                ...params,
+                includeImages: true,
+            });
 
-        if (params.search) query.search = params.search;
+            const response =
+                await this.client.sendHttpRequestAndReturnJson<any>(
+                    'GET',
+                    asRelativePath('entity/assortment'),
+                    queryParams
+                );
 
-        query.expand = 'images,product';
+            const rows: any[] = response?.data?.rows ?? [];
 
-        if (params.onlyActive !== false) query.filter = 'archived=false';
+            if (rows.length) await this.enrichRowsWithImages(rows);
 
-        const response = await this.client.sendHttpRequestAndReturnJson<any>(
-            'GET',
-            asRelativePath('entity/assortment'),
-            query
-        );
+            const items: IProduct[] = MoySkladDecoder.decodeProductsList(rows);
 
-        const rows: any[] = response?.data?.rows ?? [];
+            let nextOffset: number | undefined;
 
-        if (rows.length) await this.enrichRowsWithImages(rows);
+            const meta = response?.data?.meta;
 
-        const items: IProduct[] = MoySkladDecoder.decodeProductsList(rows);
+            const rate = extractRate(response.headers as THttpHeaders);
 
-        let nextOffset: number | undefined;
-
-        const meta = response?.data?.meta;
-
-        const rate = extractRate(response.headers as THttpHeaders);
-
-        if (TypeGuardsService.isAssortmentMeta(meta)) {
-            if (meta.offset + meta.limit < meta.size) {
-                nextOffset = meta.offset + meta.limit;
+            if (TypeGuardsService.isAssortmentMeta(meta)) {
+                nextOffset =
+                    meta.offset + meta.limit < meta.size
+                        ? meta.offset + meta.limit
+                        : undefined;
+                return { items, nextOffset, rate };
             }
+
+            if (
+                !TypeGuardsService.isAssortmentMeta(meta) &&
+                rows.length === queryParams.limit
+            ) {
+                nextOffset = (params.offset ?? 0) + queryParams.limit;
+            }
+
             return { items, nextOffset, rate };
+        } catch (error: any) {
+            throw new Error(
+                `getListMarketProducts failed: ${error?.message ?? String(error)}`
+            );
         }
-
-        if (rows.length === limit) {
-            nextOffset = offset + limit;
-        }
-
-        return { items, nextOffset, rate };
     }
 }

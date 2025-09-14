@@ -1,3 +1,5 @@
+import { IProduct } from "../../domains/client";
+
 export interface IClientConfig {
     baseURL: string;
     token?: string;
@@ -152,4 +154,16 @@ export interface IMoySkladSalePrice {
 
 export interface IMoySkladRowWithPrices {
     salePrices?: IMoySkladSalePrice[];
+}
+
+export interface IFetchAssortmentResult {
+    rows: any[];
+    responseMeta: any;
+    headers: THttpHeaders;
+}
+
+export interface IMarketProductsResult {
+    items: IProduct[];
+    nextOffset?: number;
+    rate: TRateInfo;
 }

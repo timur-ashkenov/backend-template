@@ -9,7 +9,9 @@ export function calculateNextOffset(
     if (TypeGuardsService.isAssortmentMeta(responseMeta)) {
         const { offset, limit, size } = responseMeta;
 
-        if (offset + limit < size) return offset + limit;
+        if (offset + limit >= size) return undefined;
+
+        return offset + limit;
     }
 
     const requestLimit = params.limit ?? 50;
