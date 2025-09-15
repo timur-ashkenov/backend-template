@@ -34,6 +34,7 @@ export async function applySelfCollectionImages(
     );
 
     const imagesRows = normalizeImageRows(response?.data?.rows);
+    
     if (!imagesRows.length) return;
 
     job.row.images = {
