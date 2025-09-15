@@ -1,7 +1,16 @@
 import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
-import type { ReviewOut, ProductStatsOut } from '../../types/UGCTypes';
+import type { IReviewOut, IProductStatsOut } from '../../types/UGCTypes';
+import { convertDateToIsoString } from '../../utils/dateTimeAndMath';
 import type { IListParams } from '../../MoySkladApi/MoySkladTypes';
+import { restrictNumberToRange } from '../../utils/numbers';
 import { UgcRepo } from '../../data/UGCRepo';
+import {
+    PRODUCT_RATING_MAX,
+    PRODUCT_RATING_MIN,
+    DEFAULT_REVIEWS_LIMIT,
+    DEFAULT_NUMERIC_VALUE,
+    ANONYMOUS_AUTHOR_FALLBACK,
+} from '../../utils/constants';
 
 export class ProductFeedService {
     constructor(
@@ -9,22 +18,12 @@ export class ProductFeedService {
         private readonly ugcRepo: UgcRepo
     ) {}
 
-    private clamp(numeric: number, min: number, max: number) {
-        return Math.min(max, Math.max(min, numeric));
-    }
-    private toIso(date: Date | string) {
-        return date instanceof Date
-            ? date.toISOString()
-            : new Date(date).toISOString();
-    }
-
     public async listProductsWithUgc(
         params: IListParams & { reviewsLimit?: number }
     ): Promise<Awaited<ReturnType<MoySkladService['getListMarketProducts']>>> {
         const response = await this.msService.getListMarketProducts(params);
 
         const baseItems = response.items;
-
         const productIds = baseItems.map((products) => products.id);
 
         await this.ugcRepo.ensureProductStats(productIds);
@@ -33,39 +32,40 @@ export class ProductFeedService {
             this.ugcRepo.getStatsByProductIds(productIds),
             this.ugcRepo.getLatestReviewsByProductIds(
                 productIds,
-                params.reviewsLimit ?? 3
+                params.reviewsLimit ?? DEFAULT_REVIEWS_LIMIT
             ),
         ]);
 
         const items = baseItems.map((products) => {
-            const stats: ProductStatsOut | undefined = statsMap.get(
+            const stats: IProductStatsOut | undefined = statsMap.get(
                 products.id
             );
 
-            const raws: ReviewOut[] = reviewsMap.get(products.id) ?? [];
+            const raws: IReviewOut[] = reviewsMap.get(products.id) ?? [];
 
             const reviews = raws.map(
                 (rows): (typeof products.reviews)[number] => ({
-                    author: rows.author || rows.userId || 'Аноним',
+                    author:
+                        rows.author || rows.userId || ANONYMOUS_AUTHOR_FALLBACK,
                     title: rows.title,
                     text: rows.text,
-                    rating: this.clamp(
-                        Number(rows.rating) || 1,
-                        1,
-                        4
+                    rating: restrictNumberToRange(
+                        Number(rows.rating) || PRODUCT_RATING_MIN,
+                        PRODUCT_RATING_MIN,
+                        PRODUCT_RATING_MAX
                     ) as (typeof products.reviews)[number]['rating'],
-                    date: this.toIso(rows.createdAt),
-                    likesCount: rows.likesCount ?? 0,
-                    dislikeCount: rows.dislikeCount ?? 0,
+                    date: convertDateToIsoString(rows.createdAt),
+                    likesCount: rows.likesCount ?? DEFAULT_NUMERIC_VALUE,
+                    dislikeCount: rows.dislikeCount ?? DEFAULT_NUMERIC_VALUE,
                 })
             ) as typeof products.reviews;
 
             return {
                 ...products,
                 reviews,
-                salesCount: stats?.salesCount ?? 0,
-                averageRating: stats?.averageRating ?? 0,
-                ratingsCount: stats?.ratingsCount ?? 0,
+                salesCount: stats?.salesCount ?? DEFAULT_NUMERIC_VALUE,
+                averageRating: stats?.averageRating ?? DEFAULT_NUMERIC_VALUE,
+                ratingsCount: stats?.ratingsCount ?? DEFAULT_NUMERIC_VALUE,
             };
         });
 
