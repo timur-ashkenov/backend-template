@@ -66,3 +66,7 @@ yarn-error.log*
 
 #package manager
 **/package-lock.json
+
+#Certs for https
+certs/*
+!certs/README.md
