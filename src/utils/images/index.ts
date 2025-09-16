@@ -4,11 +4,11 @@ import { asRelativePath } from '../../MoySkladApi/MoySkladTypes';
 
 export async function applyParentProductImages(
     client: MoySkladClient,
-    job: Extract<TEnrichJob, { kind: 'parent-product' }>
+    enrichTask: Extract<TEnrichJob, { kind: 'parent-product' }>
 ): Promise<void> {
     const response = await client.sendHttpRequestAndReturnJson<any>(
         'GET',
-        asRelativePath(`entity/product/${job.productId}`),
+        asRelativePath(`entity/product/${enrichTask.productId}`),
         { expand: 'images' }
     );
 
@@ -17,8 +17,8 @@ export async function applyParentProductImages(
 
     if (!imagesRows.length) return;
 
-    job.row.product = job.row.product ?? {};
-    job.row.product.images = {
+    enrichTask.row.product = enrichTask.row.product ?? {};
+    enrichTask.row.product.images = {
         rows: imagesRows,
         meta: product?.images?.meta,
     };
@@ -26,21 +26,21 @@ export async function applyParentProductImages(
 
 export async function applySelfCollectionImages(
     client: MoySkladClient,
-    job: Extract<TEnrichJob, { kind: 'self-collection' }>
+    enrichTask: Extract<TEnrichJob, { kind: 'self-collection' }>
 ): Promise<void> {
     const response = await client.sendHttpRequestAndReturnJson<any>(
         'GET',
-        asRelativePath(job.collectionHref)
+        asRelativePath(enrichTask.collectionHref)
     );
 
     const imagesRows = normalizeImageRows(response?.data?.rows);
-    
+
     if (!imagesRows.length) return;
 
-    job.row.images = {
-        ...(job.row.images ?? {}),
+    enrichTask.row.images = {
+        ...(enrichTask.row.images ?? {}),
         rows: imagesRows,
-        meta: job.row.images?.meta,
+        meta: enrichTask.row.images?.meta,
     };
 }
 
