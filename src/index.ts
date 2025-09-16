@@ -1,14 +1,14 @@
+import fs from 'node:fs';
 import dotenv from 'dotenv';
 import express from 'express';
-import fs from 'node:fs';
 import https from 'node:https';
 import AuthRoutes from './routes/AuthRoutes';
-import { buildMoySkladMarketRouter } from './routes/MoySkladMarketRoutes';
 import transactionRoutes from './routes/TransactionRoutes';
+import { buildMoySkladMarketRouter } from './routes/MoySkladMarketRoutes';
+import { DataBaseConnection } from './services/DatabaseConnectionService';
+import { errorHandler } from './middlewares/errorHandler';
 import { corsMiddleware } from './middlewares/CORS';
 import { setupSwagger } from './docs/swaggerdoc';
-import { errorHandler } from './middlewares/errorHandler';
-import { DataBaseConnection } from './services/DatabaseConnectionService';
 
 dotenv.config();
 
