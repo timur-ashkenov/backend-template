@@ -20,8 +20,9 @@ export class ProductFeedService {
 
     public async listProductsWithUgc(
         params: IListParams & { reviewsLimit?: number }
-    ): Promise<Awaited<ReturnType<MoySkladService['listMarketProducts']>>> {
-        const response = await this.msService.listMarketProducts(params);
+    ): Promise<Awaited<ReturnType<MoySkladService['getListMarketProducts']>>> {
+        const response = await this.msService.getListMarketProducts(params);
+
         const baseItems = response.items;
         const productIds = baseItems.map((products) => products.id);
 
