@@ -49,8 +49,8 @@ mv localhost+2-key.pem certificates/localhost.key
 
 Now you should have:
 ```
-certs/localhost.pem   # certificate
-certs/localhost.key   # private key
+certificates/localhost.pem   # certificate
+certificates/localhost.key   # private key
 ```
 
 ---
@@ -60,8 +60,8 @@ Set the following in your `.env` (already supported in the code):
 
 ```env
 HTTPS_ENABLED=true
-HTTPS_CERT_PATH=./certs/localhost.pem
-HTTPS_KEY_PATH=./certs/localhost.key
+HTTPS_CERT_PATH=./certificates/localhost.pem
+HTTPS_KEY_PATH=./certificates/localhost.key
 PORT=3000
 ```
 
