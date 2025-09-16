@@ -92,9 +92,9 @@ You need to generate TLS certificates using `mkcert`
 brew install mkcert nss
 mkcert -install
 mkcert localhost 127.0.0.1 ::1
-mkdir -p certs
-mv localhost+2.pem certs/localhost.pem
-mv localhost+2-key.pem certs/localhost.key
+mkdir -p certificates
+mv localhost+2.pem certificates/localhost.pem
+mv localhost+2-key.pem certificates/localhost.key
 ```
 
 `Linux`
@@ -111,9 +111,9 @@ mkcert -install
 4. Generate Certs:
 ```bash
 mkcert localhost 127.0.0.1 ::1
-mkdir -p certs
-mv localhost+2.pem certs/localhost.pem
-mv localhost+2-key.pem certs/localhost.key
+mkdir -p cerificates
+mv localhost+2.pem certificates/localhost.pem
+mv localhost+2-key.pem certificates/localhost.key
 ```
 
 `Windows`
@@ -123,9 +123,9 @@ mv localhost+2-key.pem certs/localhost.key
 choco install mkcert
 mkcert -install
 mkcert localhost 127.0.0.1 ::1
-mkdir certs
-move localhost+2.pem certs/localhost.pem
-move localhost+2-key.pem certs/localhost.key
+mkdir certificates
+move localhost+2.pem certificates/localhost.pem
+move localhost+2-key.pem certificates/localhost.key
 ```
 
 

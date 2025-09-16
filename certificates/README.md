@@ -42,9 +42,9 @@ Run in the project root:
 
 ```bash
 mkcert localhost 127.0.0.1 ::1
-mkdir -p certs
-mv localhost+2.pem certs/localhost.pem
-mv localhost+2-key.pem certs/localhost.key
+mkdir -p certificates
+mv localhost+2.pem certificates/localhost.pem
+mv localhost+2-key.pem certificates/localhost.key
 ```
 
 Now you should have:
