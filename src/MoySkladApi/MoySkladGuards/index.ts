@@ -1,9 +1,9 @@
-import { AssortmentMeta } from '../MoySkladTypes';
+import { TAssortmentMeta } from '../MoySkladTypes';
 
 export class TypeGuardsService {
     public static isAssortmentMeta(
         metaLike: unknown
-    ): metaLike is AssortmentMeta {
+    ): metaLike is TAssortmentMeta {
         return (
             !!metaLike &&
             Number.isFinite((metaLike as any).size) &&

@@ -1,19 +1,19 @@
-export type Ratings = 1 | 2 | 3 | 4;
+export type TRatings = 1 | 2 | 3 | 4;
 
-export interface ReviewDoc {
+export interface IReviewDoc {
   _id: import("mongodb").ObjectId;
   productId: string;
   userId: string;          
   author: string;          
   title?: string;
   text: string;
-  rating: Ratings;         
+  rating: TRatings;         
   createdAt: Date;
   likesCount: number;
   dislikeCount: number;
 }
 
-export interface ProductStatsDoc {
+export interface IProductStatsDoc {
   _id?: import("mongodb").ObjectId; 
   productId: string;               
   salesCount: number;
@@ -22,20 +22,20 @@ export interface ProductStatsDoc {
   reviewsCount?: number;
 }
 
-export interface ReviewOut {
+export interface IReviewOut {
   id: string;               
   productId: string;
   userId: string;
   author: string;
   title?: string;
   text: string;
-  rating: Ratings;
+  rating: TRatings;
   createdAt: Date;          
   likesCount: number;
   dislikeCount: number;
 }
 
-export interface ProductStatsOut {
+export interface IProductStatsOut {
   productId: string;
   salesCount: number;
   ratingsCount: number;

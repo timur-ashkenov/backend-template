@@ -1,6 +1,6 @@
-import path from 'path';
+import { IProduct } from "../../domains/client";
 
-export interface ClientConfig {
+export interface IClientConfig {
     baseURL: string;
     token?: string;
     basic?: { user: string; pass: string };
@@ -8,16 +8,16 @@ export interface ClientConfig {
     maxRetries?: number;
 }
 
-export type HttpHeaders = Record<string, string>;
+export type THttpHeaders = Record<string, string>;
 
-export interface HttpResponse<T = unknown> {
+export interface IHttpResponse<T = unknown> {
     status: number;
-    headers: HttpHeaders;
+    headers: THttpHeaders;
     data: T;
     statusText?: string;
 }
 
-export interface ListParams {
+export interface IListParams {
     limit?: number;
     offset?: number;
     search?: string;
@@ -25,7 +25,7 @@ export interface ListParams {
     onlyActive?: boolean;
 }
 
-export type MarketProduct = {
+export type TMarketProduct = {
     id: string;
     name: string;
     code?: string;
@@ -38,19 +38,19 @@ export type MarketProduct = {
     archived: boolean;
 };
 
-export type AssortmentMeta = { size: number; offset: number; limit: number };
+export type TAssortmentMeta = { size: number; offset: number; limit: number };
 
-export type RateInfo = { limit: number; remaining: number; retryAfter: number };
+export type TRateInfo = { limit: number; remaining: number; retryAfter: number };
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type THttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
-export type RelativePath = string & { __brand: 'RelativePath' };
+export type TRelativePath = string & { __brand: 'RelativePath' };
 
-export function asRelativePath(path: string): RelativePath {
+export function asRelativePath(path: string): TRelativePath {
     if (path.startsWith('/')) {
         throw new Error(`Path must be relative (no leading '/'): "${path}"`);
     }
-    return path as RelativePath;
+    return path as TRelativePath;
 }
 
 export enum HttpStatus {
@@ -65,79 +65,105 @@ export enum HttpStatus {
     NETWORK_CONNECT_TIMEOUT_ERROR = 599,
 }
 
-export type RequestArgs = {
+export type TRequestArgs = {
     url: string;
-    method: HttpMethod;
-    headers?: HttpHeaders;
+    method: THttpMethod;
+    headers?: THttpHeaders;
     body?: BodyInit | null;
     timeoutMs?: number;
     signal?: AbortSignal;
 };
 
-export interface MoySkladImageLink {
+export interface IMoySkladImageLink {
     href?: string;
     downloadHref?: string;
 }
 
-export interface MoySkladImageMeta {
+export interface IMoySkladImageMeta {
     href?: string;
     downloadHref?: string;
     [key: string]: unknown;
 }
 
-export interface MoySkladImage {
-    meta?: MoySkladImageMeta;
-    miniature?: MoySkladImageLink;
-    tiny?: MoySkladImageLink;
-    small?: MoySkladImageLink;
-    medium?: MoySkladImageLink;
-    big?: MoySkladImageLink;
+export interface IMoySkladImage {
+    meta?: IMoySkladImageMeta;
+    miniature?: IMoySkladImageLink;
+    tiny?: IMoySkladImageLink;
+    small?: IMoySkladImageLink;
+    medium?: IMoySkladImageLink;
+    big?: IMoySkladImageLink;
     href?: string;
     [key: string]: unknown;
 }
 
-export interface MoySkladImageCollection {
-    rows?: MoySkladImage[];
+export interface IMoySkladImageCollection {
+    rows?: IMoySkladImage[];
     meta?: { href?: string; size?: number; [key: string]: unknown };
 }
 
-export interface MoySkladRowWithImages {
-    images?: MoySkladImageCollection;
+export interface IMoySkladRowWithImages {
+    images?: IMoySkladImageCollection;
     product?: {
-        images?: MoySkladImageCollection;
-        image?: MoySkladImage | string | null;
+        images?: IMoySkladImageCollection;
+        image?: IMoySkladImage | string | null;
         [key: string]: unknown;
     } | null;
-    image?: MoySkladImage | string | null;
+    image?: IMoySkladImage | string | null;
     [key: string]: unknown;
 }
 
-export type MoySkladImageLike = MoySkladImage | string | null | undefined;
+export type TMoySkladImageLike = IMoySkladImage | string | null | undefined;
 
-export interface AssortmentRawResult {
+export interface IAssortmentRawResult {
     rows: any[];
     nextOffset?: number;
-    rate: RateInfo;
+    rate: TRateInfo;
 }
 
-export interface AssortmentRow {
+export interface IAssortmentRow {
     id?: string;
     meta?: { href?: string; type?: string };
     images?: {
-        rows?: MoySkladImage[];
+        rows?: IMoySkladImage[];
         meta?: { href?: string; size?: number };
     };
     product?: {
         id?: string;
         meta?: { href?: string };
         images?: {
-            rows?: MoySkladImage[];
+            rows?: IMoySkladImage[];
             meta?: { href?: string; size?: number };
         };
     };
     [key: string]: unknown;
 }
 
-export type EnrichJob =
-    | { kind: 'self-collection'; row: AssortmentRow; collectionHref: string }
-    | { kind: 'parent-product'; row: AssortmentRow; productId: string };
+export type TEnrichJob =
+    | { kind: 'self-collection'; row: IAssortmentRow; collectionHref: string }
+    | { kind: 'parent-product'; row: IAssortmentRow; productId: string };
+
+export interface IMoySkladMediaServiceOptions {
+    moyskladBaseUrl?: string;
+    allowMiniatureProxy?: boolean;
+}
+
+export interface IMoySkladSalePrice {
+    value: number | string | null;
+    currency?: { meta?: unknown };
+}
+
+export interface IMoySkladRowWithPrices {
+    salePrices?: IMoySkladSalePrice[];
+}
+
+export interface IFetchAssortmentResult {
+    rows: any[];
+    responseMeta: any;
+    headers: THttpHeaders;
+}
+
+export interface IMarketProductsResult {
+    items: IProduct[];
+    nextOffset?: number;
+    rate: TRateInfo;
+}

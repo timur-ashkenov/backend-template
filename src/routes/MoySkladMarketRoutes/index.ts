@@ -1,33 +1,47 @@
-import { Router } from 'express';
-import type { Db } from 'mongodb';
-import { asyncHandler } from '../../middlewares/asyncHandler';
-
-import { UgcRepo } from '../../data/UGCRepo';
-import { ProductFeedService } from '../../services/ProductFeedService';
-
-import { MoySkladClient } from '../../MoySkladApi/MoySkladClient';
-import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
 import { MoySkladMarketController } from '../../controllers/moySkladMarketController';
+import { MoySkladService } from '../../MoySkladApi/MoySkladServices/MoySkladService';
+import { MoySkladImageController } from '../../controllers/moySkladImageController';
+import { ProductFeedService } from '../../services/ProductFeedService';
+import { MoySkladClient } from '../../MoySkladApi/MoySkladClient';
+import { asyncHandler } from '../../middlewares/asyncHandler';
+import { UgcRepo } from '../../data/UGCRepo';
+import type { Db } from 'mongodb';
+import { Router } from 'express';
 
-export function buildMoySkladMarketRouter(db: Db): Router {
+export function buildMoySkladMarketRouter(database: Db): Router {
     const router = Router();
 
-    const ugcRepo = new UgcRepo(db);
+    const ugcRepository = new UgcRepo(database);
 
-    const msClient = new MoySkladClient({
+    const moySkladClient = new MoySkladClient({
         baseURL: process.env.MOYSKLAD_BASE_URL!,
         token: process.env.MOYSKLAD_TOKEN,
         basic:
             process.env.MS_USER && process.env.MS_PASS
                 ? { user: process.env.MS_USER, pass: process.env.MS_PASS }
                 : undefined,
-        timeoutMs: Number(process.env.MOYSKLAD_TIMEOUT_MS ?? 10000),
+        timeoutMs: Number(process.env.MOYSKLAD_TIMEOUT_MS ?? 10_000),
         maxRetries: Number(process.env.MS_MAX_RETRIES ?? 1),
     });
 
-    const msService = new MoySkladService(msClient);
-    const feed = new ProductFeedService(msService, ugcRepo);
-    const ctrl = new MoySkladMarketController(feed);
+    const moySkladService = new MoySkladService(moySkladClient);
+
+    const productFeedService = new ProductFeedService(
+        moySkladService,
+        ugcRepository
+    );
+
+    const marketController = new MoySkladMarketController(productFeedService);
+
+    router.get(
+        '/image-by-url',
+        asyncHandler(MoySkladImageController.proxyImageByHref)
+    );
+
+    router.get(
+        '/external',
+        asyncHandler(MoySkladImageController.proxyExternalMiniature)
+    );
 
     /**
      * @openapi
@@ -180,8 +194,7 @@ export function buildMoySkladMarketRouter(db: Db): Router {
      *           additionalProperties: true
      *           description: Rate-limit information from MoySklad (as is from the headers).
      */
-
-    router.get('/products', asyncHandler(ctrl.fetchMarketProducts));
+    router.get('/products', asyncHandler(marketController.fetchMarketProducts));
 
     return router;
 }
