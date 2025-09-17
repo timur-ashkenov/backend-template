@@ -13,7 +13,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
                 'REST API to manage products and transactions. Includes a MoySklad integration that normalizes assortment items into a frontend-friendly product shape.',
         },
         servers: [
-            { url: 'http://localhost:3000/', description: 'Local server' },
+            { url: 'https://localhost:3000/', description: 'Local server' },
         ],
         tags: [
             {
@@ -186,7 +186,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
                         }, 
                         coverType: {
                             type: 'string',
-                            enum: ['PAPERBACK', 'HARDCOVER', 'DIGITAL'], // ← добавили DIGITAL
+                            enum: ['PAPERBACK', 'HARDCOVER', 'DIGITAL'], 
                             description: 'Cover type',
                         },
                         pagesCount: {
