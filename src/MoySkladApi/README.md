@@ -1,6 +1,6 @@
-# Интеграция с «МойСклад»
+# Integration with MoySklad
 
-## Что делает
+## Fucntionality of API
 - The backend queries /entity/assortment from MoySklad and returns normalized MarketProduct objects.
 - Handles authorization (Bearer/Basic), retries on 429/5xx, timeouts, and rate limits.
 - Endpoint: GET /market/products.
